@@ -10,18 +10,16 @@ class NavigateView : public QWidget
 {
     Q_OBJECT
 
-
-
 public:
     explicit NavigateView(QWidget *parent = nullptr);
 public:
     QSize _itemSize;
 public:
-    QVector<NavigateItem*> _allItem;
     QVector<NavigateItem*> _lastShow;
     NavigateItem* _root;
 private:
     int _contentHeight;
+    int _lastContentOffset;
 private:
     NavigateItem* _hoverItem;
 private:
@@ -59,11 +57,7 @@ private:
 private:
     void onResize();
 private:
-    /**
-     * too complicated, have discarded it until i can solve...
-     * i just want to make an transitional animation with O(c) time complexity
-     * now it seems that the management of tree control with transitional animation is similar to Qt's multi-level window management.
-     */
+
     //void updateSubView(NavigateItem* item, int x, int &y, int& cnt, NavigateItem* parent);
     //void updateSubView(NavigateItem* item, int x, int &y, int& cnt);
     void updateSubView(NavigateItem* item, int x, int &y, int& rh);
@@ -76,13 +70,25 @@ private:
      * you can get the delta height of from item to _allItem[n-1] with return_value - item->_contentOffset
      */
     int updateContentOffset(NavigateItem* item, int off);
-
+    /**
+     * too complicated, have discarded it until i can solve...
+     * i just want to make an transitional animation with time complexity of O(C)
+     * now it seems that the management of tree control with transitional animation is similar to Qt's multi-level window management.
+     *
+     * it seems to be working fine, more testing to be done.
+     * it can handle different states accrordingly and return the final nodeContentHeight
+     * the update of content height now only depends on the delta value of height of the node and all of its descendants.
+     * 2024.4.29
+     */
+    int updateContentOffset(NavigateItem* item, int off, int rh);
+private:
+    void printInfor(NavigateItem* root);
 signals:
     void heightChanged(int contentHeight, int viewHeight);
 
 public slots:
     void onScrolled(int contentOffset);
-
+    void onReachBottom();
 private slots:
     void onUpdateTree(NavigateItem * item);
 

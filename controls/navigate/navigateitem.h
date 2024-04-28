@@ -23,20 +23,27 @@ public:
         Expanding,
         Collapsing,
         Removing,
-        Normal
+        Normal,
     }AnimatedState;
 
     int _timerId[5];
+    int _timerCnt;
 public:
     NavigateItem* _parent;
     QVector<NavigateItem*> _childs;
     NavigateItem* _next;
 public:
+    NavigateItem* _lastExpandItem;
+public:
     int _contentOffset;
+public:
+    float _nodeContentHeight;
+    int _nodeExpandHeight;
 public:
     int _w;
     int _h;
     float _ch;
+    float _ch0;
     int _x;
     int _y;
 public:
@@ -44,6 +51,7 @@ public:
 public:
     int _cth;
     float _cch;
+    float _cch0;
     int _visibleLen;
 public:
     AnimatedState _state;
@@ -60,13 +68,18 @@ public:
     bool _isDelete;
 public:
     bool _hover;
+private:
+    QMap<NavigateItem*, int> _childsIndex;
 
+private:
+    bool _rflag;
 public:
     void setExpand(bool isExpand);
     // update the contentOffset of every child nodes
     // and return the height of this node
     int updateOffset(int off);
-    int nodeHeight();
+    int updateOffset(int off, int& rh);
+    int updateOffset_delta(int &rh);
     void addChild(NavigateItem *item);
     void addChild(NavigateItem* item, int rank);
     void removeChild(int);
@@ -76,7 +89,7 @@ public:
 public:
     int width() {return _w;}
     int height() {return _h;}
-    void setFixedSize(QSize size){_w = size.width();_h = size.height(); }
+    void setFixedSize(QSize size){_w = size.width(); nodeExpandHeightChanged(size.height() - _h);_h = size.height();  }
     void hide() {_isVisible = false; }
     void show() {_isVisible = true; }
     QPoint pos(){return QPoint(_x, _y);}
@@ -87,26 +100,33 @@ public:
 public:
     void mouseClicked();
 public:
-    void addAnimation(int sh, int eh, int t);
+    void addAnimation(int t);
     void expandAnimation(int t);
     void collapseAnimation(int t);
     void removeAnimation(int t);
-    NavigateItem* findAnimationAncestor();
+public:
+    void setVisibleLen(NavigateItem *item);
 protected:
     void timerEvent(QTimerEvent* ev) override;
 private:
     void init();
     int internalUpdateOffset(int off, NavigateItem* root);
-    int internalUpdateOffset(int off, int& rh, NavigateItem* root);
     int internalUpdateOffset(int off, float& rh, NavigateItem* root);
+    float internalUpdateOffset_delta_exp(float& rh);
+    float internalUpdateOffset_delta_col(float& rh);
     int internalNodeHeight(NavigateItem* root);
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();
+    NavigateItem* findAnimationAncestor();
 signals:
     void collapsed(NavigateItem* );
     void expanded(NavigateItem* );
     void updateTree(NavigateItem*);
+public:
+    //void nodeContentHeightChanged(int dh);
+    void nodeExpandHeightChanged(int dh);
+    void nodeExpandHeightChanged_expcol(int dh);
 };
 
 

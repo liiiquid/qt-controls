@@ -55,6 +55,7 @@ private:
     void updateBar();
 signals:
     void scrolled(int contentOffset);
+    void reachBottom();
 };
 
 #endif // SCROLLBAR_H

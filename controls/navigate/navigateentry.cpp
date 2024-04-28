@@ -59,7 +59,7 @@ void NavigateEntry::setItemSize(QSize size)
 void NavigateEntry::initView()
 {
     _view = new NavigateView(this);
-    connect(_view, &NavigateView::heightChanged, this, &NavigateEntry::onHeightChanged);
+
 }
 
 void NavigateEntry::initScrollBar()
@@ -76,8 +76,13 @@ void NavigateEntry::initLayout()
     _hLayout->addWidget(_view);
     _hLayout->addWidget(_scrollBar);
     connect(_scrollBar, &ScrollBar::scrolled, _view, &NavigateView::onScrolled);
+    connect(_scrollBar, &ScrollBar::reachBottom, _view, &NavigateView::onReachBottom);
+
     connect(this, &NavigateEntry::collapsed, _view, &NavigateView::onCollapsed);
     connect(this, &NavigateEntry::expanded, _view, &NavigateView::onExpanded);
+
+    connect(_view, &NavigateView::heightChanged, this, &NavigateEntry::onHeightChanged);
+
 
 }
 

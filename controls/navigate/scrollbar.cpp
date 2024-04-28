@@ -49,6 +49,12 @@ void ScrollBar::scroll(int step)
     _contentOffset -= step;
     _contentOffset = qMax(0, _contentOffset);
     _contentOffset = qMin(_contentHeight - _viewHeight, _contentOffset);
+    if(_contentOffset == _contentHeight - _viewHeight)
+    {
+        _contentOffset -= 1;
+        emit reachBottom();
+        return;
+    }
     updateBar();
     show();
     emit scrolled(_contentOffset);
