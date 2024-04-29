@@ -19,6 +19,7 @@ void ScrollBar::wheelEvent(QWheelEvent *ev)
 {
     QPoint numSteps = ev->angleDelta() / _scrollFactor;
     scroll(numSteps.y());
+
 }
 
 void ScrollBar::resizeEvent(QResizeEvent *ev)

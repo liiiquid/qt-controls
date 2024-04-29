@@ -104,6 +104,8 @@ public:
     void expandAnimation(int t);
     void collapseAnimation(int t);
     void removeAnimation(int t);
+    NavigateItem* findAnimationAncestor_nearest(AnimatedState state);
+
 public:
     void setVisibleLen(NavigateItem *item);
 protected:
@@ -118,7 +120,6 @@ private:
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();
-    NavigateItem* findAnimationAncestor();
 signals:
     void collapsed(NavigateItem* );
     void expanded(NavigateItem* );
@@ -127,6 +128,8 @@ public:
     //void nodeContentHeightChanged(int dh);
     void nodeExpandHeightChanged(int dh);
     void nodeExpandHeightChanged_expcol(int dh);
+    void lastExpandItemChanged(NavigateItem* lastExpandItem);
+    void nodeContentHeightChanged(int dh);
 };
 
 

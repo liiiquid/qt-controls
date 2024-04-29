@@ -77,15 +77,16 @@ void NavigateItem::expandAnimation(int t)
     {
         _cch = _ch;
         _nodeContentHeight = _cch;
+        _lastExpandItem = _childs[0];
+        lastExpandItemChanged(_lastExpandItem);
+        _timerCnt = 0;
+        _cth = _nodeExpandHeight;
+        _dh = (_cth - _cch);
+        _dh = _dh / ( t * 1.0 / TimerInverval);
     }
 
     _state = Expanding;
-    _timerCnt = 0;
-    _lastExpandItem = _childs[0];
 
-    _cth = _nodeExpandHeight;
-    _dh = (_cth - _cch);
-    _dh = _dh / (t * 1.0 / TimerInverval);
     int ret = startTimer(TimerInverval);
     if(ret == 0)
     {
@@ -105,9 +106,9 @@ void NavigateItem::collapseAnimation(int t)
     {
         killTimer(_timerId[_state]);
     }
+
     _state = Collapsing;
-    _timerCnt = 0;
-    _dh = _cch / (t * 1.0 / TimerInverval);
+
     int ret = startTimer(TimerInverval);
     if(ret == 0)
     {
@@ -147,22 +148,6 @@ void NavigateItem::setVisibleLen(NavigateItem *item)
     }
 }
 
-NavigateItem *NavigateItem::findAnimationAncestor()
-{
-    NavigateItem* ancestor = _parent;
-    NavigateItem* aancestor = ancestor;
-    while( ancestor->_parent != nullptr)
-    {
-        aancestor = ancestor;
-        ancestor = ancestor->_parent;
-        if(ancestor->_state == Expanding || ancestor->_state == Collapsing)
-        {
-
-        }
-    }
-    return nullptr;
-}
-
 void NavigateItem::nodeExpandHeightChanged(int dh)
 {
     if(dh == 0) return;
@@ -180,6 +165,28 @@ void NavigateItem::nodeExpandHeightChanged_expcol(int dh)
     if(dh == 0) return;
     if(_parent)
         _parent->nodeExpandHeightChanged(dh);
+}
+
+void NavigateItem::lastExpandItemChanged(NavigateItem *lastExpandItem)
+{
+    NavigateItem* p = _parent;
+    while(p != nullptr)
+    {
+        Q_ASSERT(p->_isExpand == true);
+        p->_lastExpandItem = lastExpandItem;
+        p = p->_parent;
+    }
+}
+
+void NavigateItem::nodeContentHeightChanged(int dh)
+{
+    if(dh == 0) return;
+    NavigateItem* p = this;
+    while( p != nullptr)
+    {
+        p->_nodeContentHeight += dh;
+        p = p->_parent;
+    }
 }
 
 void NavigateItem::timerEvent(QTimerEvent *ev)
@@ -210,6 +217,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
         {
             _cch0 = _cch;
             _cch += _dh;
+            _timerCnt += 1;
         }
 
     }else if(_state == Collapsing)
@@ -226,6 +234,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
         {
             _cch0 = _cch;
             _cch -= _dh;
+            _timerCnt += 1;
         }
 
     }else if(_state == Removing)
@@ -339,7 +348,8 @@ int NavigateItem::updateOffset_delta(int &rh)
         rh -= ret;
         //x = ret = 0;
     }
-    _nodeContentHeight += ret;
+    Q_UNUSED(ret);
+    //_nodeContentHeight += ret;
     //qDebug() << _title << _nodeContentHeight << ret << x << rh << dh;
     return _nodeContentHeight;
 }
@@ -467,21 +477,25 @@ int NavigateItem::internalUpdateOffset(int off, NavigateItem *root)
 int NavigateItem::internalUpdateOffset(int off, float &rh, NavigateItem *root)
 {
     int h = 0, i = 0;
+    float oc = 0;
     if(rh <= 0 ) return h;
     root->_contentOffset = off;
     if(rh >= root->_h)
     {
+        oc = root->_ch;
         root->_ch = root->_h;
     }else
     {
+        oc = root->_ch;
         root->_ch = rh;
     }
     h += root->_ch;
     rh -= root->_ch;
+    nodeContentHeightChanged(root->_ch - oc);
     if(root->_isExpand == false) return h;
     for( i = 0; i < root->_childs.size() && rh > 0; i++)
     {
-        h += internalUpdateOffset(off + h, root->_childs[i]);
+        h += internalUpdateOffset(off + h, rh, root->_childs[i]);
     }
     root->_visibleLen = i;
     return h;
@@ -497,7 +511,8 @@ float NavigateItem::internalUpdateOffset_delta_exp(float &rh)
     if( curExpandItem->_ch + rh >= curExpandItem->_h )
     {
         dh = curExpandItem->_h - curExpandItem->_ch;
-        curExpandItem->_ch = curExpandItem->_h;
+        curExpandItem->_ch += dh;
+        curExpandItem->nodeContentHeightChanged(dh);
         rh -= dh;
         h += dh;
         curExpandItem->_parent->_visibleLen = curExpandItem->_parent->_childsIndex[curExpandItem] + 1;
@@ -518,6 +533,7 @@ float NavigateItem::internalUpdateOffset_delta_exp(float &rh)
                 }
             }
             _lastExpandItem->_contentOffset = curExpandItem->_contentOffset + curExpandItem->_ch;
+            lastExpandItemChanged(_lastExpandItem);
             h += internalUpdateOffset_delta_exp(rh);
 
         }else
@@ -526,6 +542,7 @@ float NavigateItem::internalUpdateOffset_delta_exp(float &rh)
             {
                 _lastExpandItem = curExpandItem->_childs[i];
                 _lastExpandItem->_contentOffset = curExpandItem->_contentOffset + h;
+                lastExpandItemChanged(_lastExpandItem);
                 h += internalUpdateOffset_delta_exp(rh);
             }
             curExpandItem->_visibleLen = i;
@@ -534,6 +551,7 @@ float NavigateItem::internalUpdateOffset_delta_exp(float &rh)
     }else
     {
         curExpandItem->_ch += rh;
+        curExpandItem->nodeContentHeightChanged(rh);
         h += rh;
         rh -= rh;
         curExpandItem->_parent->_visibleLen = curExpandItem->_parent->_childsIndex[curExpandItem] + 1;
@@ -553,6 +571,7 @@ float NavigateItem::internalUpdateOffset_delta_col(float &rh)
     {
         dh = curExpandItem->_ch;
         curExpandItem->_ch = 0;
+        curExpandItem->nodeContentHeightChanged(-dh);
         rh -= dh;
         h += dh;
         parent->_visibleLen = parent->_childsIndex[curExpandItem];
@@ -572,11 +591,13 @@ float NavigateItem::internalUpdateOffset_delta_col(float &rh)
             i = parent->_childsIndex[curExpandItem];
             _lastExpandItem = parent->_childs[i - 1];
         }
+        lastExpandItemChanged(_lastExpandItem);
         h += internalUpdateOffset_delta_col(rh);
 
     }else
     {
         curExpandItem->_ch -= rh;
+        curExpandItem->nodeContentHeightChanged(-rh);
         h += rh;
         rh -= rh;
         curExpandItem->_parent->_visibleLen = curExpandItem->_parent->_childsIndex[curExpandItem] + 1;
@@ -624,4 +645,18 @@ void NavigateItem::internalDeleteChild()
     {
         delete x;
     }
+}
+
+NavigateItem *NavigateItem::findAnimationAncestor_nearest(AnimatedState state)
+{
+    NavigateItem* ret = _parent;
+    while(ret != nullptr)
+    {
+        if(ret->_state == state)
+        {
+            return ret;
+        }
+        ret = ret->_parent;
+    }
+    return ret;
 }

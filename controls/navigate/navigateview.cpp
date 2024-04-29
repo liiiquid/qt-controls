@@ -3,7 +3,7 @@
 #include <QDebug>
 #define OPERATION_EXPAND 1
 #define OPERATION_COLLAPSE 2
-const int AnimationDuration = 2500;
+const int AnimationDuration = 250;
 NavigateView::NavigateView(QWidget *parent)
     : QWidget{parent}
 {
@@ -208,11 +208,21 @@ void NavigateView::onScrolled(int contentOffset)
 
 void NavigateView::onReachBottom()
 {
+    qDebug() << "NavigateView::onReachBottom: " << "function called";
     if(_lastShow.size() > 0)
     {
-        updateContentOffset(_lastShow.last(), _lastShow.last()->_contentOffset, height() << 1);
+        NavigateItem* la = _lastShow.last();
+        auto x = la->findAnimationAncestor_nearest(NavigateItem::Collapsing);
+        if(x == nullptr || x == _root)
+        {
+            updateContentOffset(_lastShow.last(), _lastShow.last()->_contentOffset, height() << 1);
+        }
+        else
+        {
+            return;
+        }
     }
-    qDebug() << "NavigateView::onReachBottom: " << "function called";
+
 }
 
 void NavigateView::onUpdateTree(NavigateItem *item)
@@ -320,6 +330,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
     off += item->updateOffset_delta(rh);
     int d2 = item->_nodeContentHeight;
     d += d2 -d1;
+    qDebug() << "NavigateView::updateContentOffset:" << item->_title << d2 - d1;
     // check the sis of item.
     while(item->_next != nullptr && rh > 0)
     {
@@ -329,6 +340,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
         off += item->updateOffset_delta(rh);
         d2 = item->_nodeContentHeight;
         d += d2 - d1;
+        qDebug() << "NavigateView::updateContentOffset:" << item->_title << d2 - d1;
     }
 
     // upwards until reach the top level, which is the child of _root.
@@ -343,6 +355,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
             off += item->updateOffset_delta(rh);
             d2 = item->_nodeContentHeight;
             d += d2 - d1;
+            qDebug() << "NavigateView::updateContentOffset:" << item->_title << d2 - d1;
         }
     }
 
@@ -355,6 +368,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
         off += item->updateOffset_delta(rh);
         d2 = item->_nodeContentHeight;
         d += d2 - d1;
+        qDebug() << "NavigateView::updateContentOffset:" << item->_title << d2 - d1;
     }
 
     if(rh <= 0 )
@@ -382,13 +396,12 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 void NavigateView::printInfor(NavigateItem* root)
 {
     qDebug() << "NavigateView::printInfor:" << root->_title << root->_contentOffset << root->_visibleLen <<root->_nodeContentHeight << root->_nodeExpandHeight;
-    if(root->_isExpand)
+
+    for(auto&x : root->_childs)
     {
-        for(auto&x : root->_childs)
-        {
-            printInfor(x);
-        }
+        printInfor(x);
     }
+
 }
 
 void NavigateView::setAllItemSize(const QVector<NavigateItem *> &roots)
