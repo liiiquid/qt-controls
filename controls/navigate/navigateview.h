@@ -25,16 +25,15 @@ private:
 private:
     bool _initOk;
     QVector<QPair<int, NavigateItem*>> _operations;
+private:
+    int _preloadPageHeight;
 public:
     //int contentHeight();
 public:
     // tree control
-    // void  addItem(NavigateItem* item);
-    // void addItem(NavigateItem* item, int rank);
     void addItem(int parentContentOff, NavigateItem* item);
     void addItem(NavigateItem* parentItem, NavigateItem* item);
     void addItem(NavigateItem* parentItem, NavigateItem* item, int rank);
-    //void  removeItem(int i);
     void removeItem(NavigateItem* parent, int i);
 public:
     void onExpanded(NavigateItem* item, int contentOffset);
@@ -51,7 +50,6 @@ protected:
     bool event(QEvent* ev) override;
     void mousePressEvent(QMouseEvent*) override;
 private:
-    void setAllItemSize(const QVector<NavigateItem*>& roots);
     NavigateItem *internalSearch(int contentOffset, const QVector<NavigateItem*>& roots);
     NavigateItem *internalSearch(int contentOffset, const QVector<NavigateItem*>& roots, int len);
 private:
@@ -62,14 +60,6 @@ private:
     //void updateSubView(NavigateItem* item, int x, int &y, int& cnt);
     void updateSubView(NavigateItem* item, int x, int &y, int& rh);
     void updateView(NavigateItem* st_item, int d1);
-    /**
-     * @brief updateContentOffset
-     * @param item
-     * @param off
-     * @return return the total height from item->_contentOffset to _allItem[n-1]
-     * you can get the delta height of from item to _allItem[n-1] with return_value - item->_contentOffset
-     */
-    int updateContentOffset(NavigateItem* item, int off);
     /**
      * too complicated, have discarded it until i can solve...
      * i just want to make an transitional animation with time complexity of O(C)
@@ -83,6 +73,8 @@ private:
     int updateContentOffset(NavigateItem* item, int off, int rh);
 private:
     void printInfor(NavigateItem* root);
+private:
+    void setAllItemSize(NavigateItem* root);
 signals:
     void heightChanged(int contentHeight, int viewHeight);
 

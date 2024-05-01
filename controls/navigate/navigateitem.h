@@ -32,7 +32,7 @@ public:
     NavigateItem* _parent;
     QVector<NavigateItem*> _childs;
     NavigateItem* _next;
-public:
+private:
     NavigateItem* _lastExpandItem;
 public:
     int _contentOffset;
@@ -43,7 +43,6 @@ public:
     int _w;
     int _h;
     float _ch;
-    float _ch0;
     int _x;
     int _y;
 public:
@@ -51,7 +50,6 @@ public:
 public:
     int _cth;
     float _cch;
-    float _cch0;
     int _visibleLen;
 public:
     AnimatedState _state;
@@ -68,16 +66,16 @@ public:
     bool _isDelete;
 public:
     bool _hover;
+public:
+    static NavigateItem* _lastUpdatedItem;
 private:
     QMap<NavigateItem*, int> _childsIndex;
-
 private:
-    bool _rflag;
+    bool _isAllExpanded;
 public:
     void setExpand(bool isExpand);
     // update the contentOffset of every child nodes
     // and return the height of this node
-    int updateOffset(int off);
     int updateOffset(int off, int& rh);
     int updateOffset_delta(int &rh);
     void addChild(NavigateItem *item);
@@ -112,11 +110,9 @@ protected:
     void timerEvent(QTimerEvent* ev) override;
 private:
     void init();
-    int internalUpdateOffset(int off, NavigateItem* root);
     int internalUpdateOffset(int off, float& rh, NavigateItem* root);
     float internalUpdateOffset_delta_exp(float& rh);
     float internalUpdateOffset_delta_col(float& rh);
-    int internalNodeHeight(NavigateItem* root);
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();
@@ -125,11 +121,12 @@ signals:
     void expanded(NavigateItem* );
     void updateTree(NavigateItem*);
 public:
-    //void nodeContentHeightChanged(int dh);
     void nodeExpandHeightChanged(int dh);
-    void nodeExpandHeightChanged_expcol(int dh);
     void lastExpandItemChanged(NavigateItem* lastExpandItem);
-    void nodeContentHeightChanged(int dh);
+    void nodeContentHeightChanged(float dh);
+
+public:
+    void nodeExpandHeightChanged_expcol(int dh);
 };
 
 

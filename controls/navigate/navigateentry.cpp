@@ -65,16 +65,17 @@ void NavigateEntry::initView()
 void NavigateEntry::initScrollBar()
 {
     _scrollBar = new ScrollBar(this);
-    _scrollBar->_scrollFactor = 10 * 1.5;
+    _scrollBar->_scrollFactor = 5;
     _scrollBar->_barWPct = 0.5;
 }
 
 void NavigateEntry::initLayout()
 {
     _hLayout = new QBoxLayout(QBoxLayout::LeftToRight, this);
-    _scrollBar->setFixedWidth(30);
+    _scrollBar->setFixedWidth(15);
     _hLayout->addWidget(_view);
     _hLayout->addWidget(_scrollBar);
+    _hLayout->setSpacing(0);
     connect(_scrollBar, &ScrollBar::scrolled, _view, &NavigateView::onScrolled);
     connect(_scrollBar, &ScrollBar::reachBottom, _view, &NavigateView::onReachBottom);
 
@@ -99,5 +100,10 @@ void NavigateEntry::wheelEvent(QWheelEvent *ev)
 void NavigateEntry::paintEvent(QPaintEvent *ev)
 {
     QPainter painter(this);
-    painter.drawRect(0, 0, width() -1, height() - 1);
+    //painter.drawRect(0, 0, width() -1, height() - 1);
+}
+
+void NavigateEntry::timerEvent(QTimerEvent *ev)
+{
+
 }

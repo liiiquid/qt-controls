@@ -33,7 +33,7 @@ public:
 protected:
     void wheelEvent(QWheelEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
-
+    void timerEvent(QTimerEvent* ev) override;
 private:
     void initView();
     void initScrollBar();

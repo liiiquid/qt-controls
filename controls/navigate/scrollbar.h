@@ -36,6 +36,7 @@ private:
     int _viewHeight;
     // _contentHeight / this->height()
     float _scrollRatio;
+
 public:
     void scroll(int step);
 
@@ -53,6 +54,7 @@ private:
     void drawVerticalScroll(QPainter& painter);
 
     void updateBar();
+    void scroll();
 signals:
     void scrolled(int contentOffset);
     void reachBottom();
