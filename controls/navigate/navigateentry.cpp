@@ -27,13 +27,21 @@ void NavigateEntry::addItem(NavigateItem *item, int rank)
     connect(item, &NavigateItem::expanded, this, &NavigateEntry::onExpanded);
     _view->addItem(nullptr, item, rank);
 }
-
 void NavigateEntry::addItem(NavigateItem *parent, NavigateItem *item)
 {
     if(parent == nullptr ) {addItem(item); return; }
     connect(item, &NavigateItem::collapsed, this, &NavigateEntry::onCollapsed);
     connect(item, &NavigateItem::expanded, this, &NavigateEntry::onExpanded);
     _view->addItem(parent, item);
+}
+
+void NavigateEntry::addItem(NavigateItem *parent, NavigateItem *item, int rank)
+{
+    if(parent == nullptr ) {addItem(item, rank); return; }
+
+    connect(item, &NavigateItem::collapsed, this, &NavigateEntry::onCollapsed);
+    connect(item, &NavigateItem::expanded, this, &NavigateEntry::onExpanded);
+    _view->addItem(parent, item, rank);
 }
 
 void NavigateEntry::removeItem(int i)

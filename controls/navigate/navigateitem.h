@@ -43,6 +43,7 @@ public:
     int _w;
     int _h;
     float _ch;
+    float _ch0;
     int _x;
     int _y;
 public:
@@ -50,6 +51,7 @@ public:
 public:
     int _cth;
     float _cch;
+    float _cch0;
     int _visibleLen;
 public:
     AnimatedState _state;
@@ -103,7 +105,7 @@ public:
     void collapseAnimation(int t);
     void removeAnimation(int t);
     NavigateItem* findAnimationAncestor_nearest(AnimatedState state);
-
+    NavigateItem* findAnimationAncestor_nearest_neg(AnimatedState state);
 public:
     void setVisibleLen(NavigateItem *item);
 protected:
@@ -113,6 +115,7 @@ private:
     int internalUpdateOffset(int off, float& rh, NavigateItem* root);
     float internalUpdateOffset_delta_exp(float& rh);
     float internalUpdateOffset_delta_col(float& rh);
+    float internalUpdateOffset_delta_add(float& rh);
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();

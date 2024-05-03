@@ -25,6 +25,7 @@ public:
     void addItem(NavigateItem* item);
     void addItem(NavigateItem* item, int rank);
     void addItem(NavigateItem* parent, NavigateItem* item);
+    void addItem(NavigateItem* parent, NavigateItem* item, int rank);
     void removeItem(int i);
     void removeItem(NavigateItem* parent, int i);
     void scroll(int step);

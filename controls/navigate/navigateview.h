@@ -24,7 +24,7 @@ private:
     NavigateItem* _hoverItem;
 private:
     bool _initOk;
-    QVector<QPair<int, NavigateItem*>> _operations;
+    QMap<int, QVector<NavigateItem*>> _operations;
 private:
     int _preloadPageHeight;
 public:
