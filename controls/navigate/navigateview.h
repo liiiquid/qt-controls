@@ -43,7 +43,8 @@ public:
     void setItemHeight(int height);
 public:
     NavigateItem* search(int contentOffset);
-
+    
+    void setExpand(NavigateItem *item, bool isExpand);
 protected:
     void paintEvent(QPaintEvent* ev) override;
     void resizeEvent(QResizeEvent* ev) override;

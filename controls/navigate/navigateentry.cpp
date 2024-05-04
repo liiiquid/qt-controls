@@ -64,6 +64,11 @@ void NavigateEntry::setItemSize(QSize size)
     _view->setItemHeight(size.height());
 }
 
+void NavigateEntry::setExpand(NavigateItem *item, bool isExpand)
+{
+    _view->setExpand(item, isExpand);
+}
+
 void NavigateEntry::initView()
 {
     _view = new NavigateView(this);

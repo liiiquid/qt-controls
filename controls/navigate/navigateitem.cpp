@@ -49,12 +49,21 @@ bool NavigateItem::inRange(QPoint pos)
 void NavigateItem::mouseClicked()
 {
     qDebug() << _title << " clicked";
-    setExpand(!_isExpand);
+    if(_state == Collapsing)
+    {
+        setExpand(true);
+    }else if(_state == Expanding)
+    {
+        setExpand(false);
+    }else
+    {
+        setExpand(!_isExpand);
+    }
 }
 
 void NavigateItem::addAnimation(int t)
 {
-    if(_state == Adding) return;
+    if(_state != Normal) return;
     _parent->setVisibleLen(this);
     _state = Adding;
     _ch = 0;
@@ -74,10 +83,11 @@ void NavigateItem::addAnimation(int t)
 
 void NavigateItem::expandAnimation(int t)
 {
+
     if(_state == Collapsing)
     {
         killTimer(_timerId[_state]);
-    }else
+    }else if(_state == Normal)
     {
         if(_childs.size() <= 0) return;
         _cch0 = _cch = _ch;
@@ -89,6 +99,10 @@ void NavigateItem::expandAnimation(int t)
         _cth = _nodeExpandHeight;
         _dh = (_cth - _cch);
         _dh = _dh / ( t * 1.0 / TimerInverval);
+    }else
+    {
+        qDebug() <<  "NavigateItem::expandAnimation: State other than Collapsing, Normal met";
+        return;
     }
 
     _state = Expanding;
@@ -111,10 +125,14 @@ void NavigateItem::collapseAnimation(int t)
     if(_state == Expanding)
     {
         killTimer(_timerId[_state]);
-    }else
+    }else if(_state == Normal)
     {
         _cch0 = _cch = _nodeExpandHeight;
         _dh = (_cch - _ch) / ( t * 1.0 / TimerInverval);
+    }else
+    {
+        qDebug() << "NavigateItem::collapseAnimation: State other than Expanding, Normal met";
+        return;
     }
 
     _state = Collapsing;
@@ -134,9 +152,9 @@ void NavigateItem::collapseAnimation(int t)
 
 void NavigateItem::removeAnimation(int t)
 {
-    if(_state == Removing)
+    if(_state != Normal)
     {
-        qDebug() << "NavigateItem::removeChild: " << "item is removing...";
+        qDebug() << "NavigateItem::removeChild: " << "the item can not be deleted at this time";
         return;
     }
     internalCollapseChild(this);
@@ -206,7 +224,6 @@ void NavigateItem::nodeContentHeightChanged(float dh)
     while( p != nullptr)
     {
         p->_nodeContentHeight += dh;
-
         p = p->_parent;
     }
 }
@@ -261,6 +278,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
         if(_cch <= _ch)
         {
             killTimer(_timerId[_state]);
+            _timerId[_state] = 0;
             _state = Normal;
             _isExpand = false;
             _cch = _ch;
@@ -387,7 +405,7 @@ int NavigateItem::updateOffset_delta(int &rh)
         rh = x;
     }
     Q_UNUSED(ret);
-    return _nodeContentHeight;
+    return qRound(_nodeContentHeight);
 }
 
 void NavigateItem::addChild(NavigateItem *item)
@@ -463,6 +481,7 @@ void NavigateItem::removeChild(int i)
 void NavigateItem::removeChild(NavigateItem *item)
 {
     const auto& x = _childsIndex.find(item);
+
     Q_ASSERT(x != _childsIndex.end());
 
     return removeChild(x.value());
@@ -489,7 +508,7 @@ void NavigateItem::init()
 
 int NavigateItem::internalUpdateOffset(int off, float &rh, NavigateItem *root)
 {
-    int h = 0, i = 0;
+    float h = 0, i = 0;
     float oc = 0;
     if(rh <= 0 ) return h;
     root->_contentOffset = off;
@@ -588,7 +607,7 @@ float NavigateItem::internalUpdateOffset_delta_col(float &rh)
 {
     NavigateItem* curExpandItem = _lastExpandItem;
     NavigateItem* parent = curExpandItem->_parent;
-    qDebug() << "current collapse item" << curExpandItem->_title;
+    //qDebug() << "current collapse item" << curExpandItem->_title;
     int i = 0;
     float h = 0, dh;
     if(rh <= 0) return h;

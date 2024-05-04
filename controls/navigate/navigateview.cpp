@@ -120,7 +120,7 @@ void NavigateView::onScrolled(int contentOffset)
         Q_ASSERT(contentOffset >= st_item->_contentOffset);
         d1 = contentOffset - st_item->_contentOffset;
         //qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset;
-        Q_ASSERT(d1 <= st_item->_ch);
+        Q_ASSERT(d1 <= (int)st_item->_ch);
         if( (NavigateItem::_lastUpdatedItem->_contentOffset - st_item->_contentOffset) <= _preloadPageHeight >> PageLoadRatio)
         {
             auto x = NavigateItem::_lastUpdatedItem->findAnimationAncestor_nearest_neg(NavigateItem::Normal);
@@ -138,7 +138,7 @@ void NavigateView::onScrolled(int contentOffset)
 int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 {
     NavigateItem* t = item;
-    int d = 0;
+    float d = 0;
     d = _root->_nodeContentHeight;
     Q_ASSERT(item != nullptr);
     // the delta value of height of the item is the delta value of _contentHeight
@@ -184,7 +184,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 
 
     d = _root->_nodeContentHeight - d;
-    _contentHeight = _root->_nodeContentHeight;
+    _contentHeight = qRound(_root->_nodeContentHeight);
     if( d != 0)
     {
         emit heightChanged(_contentHeight, height());
@@ -194,8 +194,7 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
         qDebug() << "NavigateView::updateContentOffset: lastItem:" << NavigateItem::_lastUpdatedItem->_title <<NavigateItem::_lastUpdatedItem->_contentOffset << NavigateItem::_lastUpdatedItem->_nodeContentHeight;
 
     qDebug() << "NavigateView::updateContentOffset:" << "sender:" << t->_title << "current contentHeight:" << _root->_nodeContentHeight << "," << d << " height changed..";
-    //printInfor(_root);
-
+    printInfor(_root);
 
     return _contentHeight;
 }
@@ -242,6 +241,38 @@ NavigateItem *NavigateView::search(int contentOffset)
         }
     }
     return ret;
+}
+
+void NavigateView::setExpand(NavigateItem *item, bool isExpand)
+{
+    if(item == nullptr) return;
+    if(_initOk == false)
+    {
+        if(isExpand == true)
+        {
+            auto x = _operations.find(OPERATION_EXPAND);
+            if(x != _operations.end())
+            {
+                x.value().push_back(item);
+            }else
+            {
+                _operations.insert(OPERATION_EXPAND, QVector<NavigateItem*>(1, item));
+            }
+        }
+        else
+        {
+            auto x = _operations.find(OPERATION_COLLAPSE);
+            if(x != _operations.end())
+            {
+                x.value().push_back(item);
+            }else
+            {
+                _operations.insert(OPERATION_COLLAPSE, QVector<NavigateItem*>(1, item));
+            }
+        }
+        return;
+    }
+    item->setExpand(isExpand);
 }
 
 /**
@@ -366,37 +397,16 @@ void NavigateView::onUpdateTree(NavigateItem *item)
 
 void NavigateView::onExpanded(NavigateItem *item, int contentOffset)
 {
-    if(_initOk == false)
-    {
-        auto x = _operations.find(OPERATION_EXPAND);
-        if(x != _operations.end())
-        {
-            x.value().push_back(item);
-        }else
-        {
-            _operations.insert(OPERATION_EXPAND, QVector<NavigateItem*>(1, item));
-        }
-        return;
-    }
 
-    if(item->_parent != nullptr && item->_parent->_isExpand == false) return;
+    qDebug() << "NavigateView::onExpanded funciton called";
+
+    Q_ASSERT(item->_parent != nullptr && item->_parent->_isExpand == true);
     item->expandAnimation(AnimationDuration);
 }
 
 void NavigateView::onCollapsed(NavigateItem *item, int contentOffset)
 {
-    if(_initOk == false)
-    {
-        auto x = _operations.find(OPERATION_COLLAPSE);
-        if(x != _operations.end())
-        {
-            x.value().push_back(item);
-        }else
-        {
-            _operations.insert(OPERATION_COLLAPSE, QVector<NavigateItem*>(1, item));
-        }
-        return;
-    }
+
     item->collapseAnimation(AnimationDuration);
 
 }
@@ -409,6 +419,7 @@ void NavigateView::setItemHeight(int h)
         _operations.insert(OPERATION_SETSIZE, QVector<NavigateItem*>(1, _root));
         return;
     }
+    qDebug() << "NavigateView::setItemHeight funciton called";
     _root->_contentOffset = -_itemSize.height();
     if(_root->_childs.size() > 0)
     {
@@ -416,7 +427,7 @@ void NavigateView::setItemHeight(int h)
         {
             setAllItemSize(x);
         }
-
+        qDebug() << "NavigateView::setItemHeight funciton called ... 2";
         updateContentOffset(_root->_childs[0], 0, _preloadPageHeight);
     }
 
@@ -442,7 +453,7 @@ void NavigateView::resizeEvent(QResizeEvent *ev)
         {
             for(auto& z : x.value())
             {
-                onExpanded(z, -1);
+                setExpand(z, true);
             }
         }
 
@@ -452,7 +463,7 @@ void NavigateView::resizeEvent(QResizeEvent *ev)
             for(auto& z : x.value())
             {
                 if(z->_state == NavigateItem::Expanding)
-                    onCollapsed(z, -1);
+                    setExpand(z, false);
             }
         }
         _operations.clear();

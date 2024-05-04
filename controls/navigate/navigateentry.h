@@ -31,6 +31,7 @@ public:
     void scroll(int step);
 public:
     void setItemSize(QSize size);
+    void setExpand(NavigateItem *item, bool isExpand);
 protected:
     void wheelEvent(QWheelEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
