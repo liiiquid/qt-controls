@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QEvent>
+#include <QMouseEvent>
 const int TimerInverval = 5;
 NavigateItem* NavigateItem::_lastUpdatedItem = nullptr;
 NavigateItem::NavigateItem(QObject *parent)
@@ -46,19 +47,23 @@ bool NavigateItem::inRange(QPoint pos)
     return false;
 }
 
-void NavigateItem::mouseClicked()
+void NavigateItem::mouseClicked(QMouseEvent* ev)
 {
     qDebug() << _title << " clicked";
-    if(_state == Collapsing)
+    if( ev->buttons() &Qt::LeftButton )
     {
-        setExpand(true);
-    }else if(_state == Expanding)
-    {
-        setExpand(false);
-    }else
-    {
-        setExpand(!_isExpand);
+        if(_state == Collapsing)
+        {
+            setExpand(true);
+        }else if(_state == Expanding)
+        {
+            setExpand(false);
+        }else
+        {
+            setExpand(!_isExpand);
+        }
     }
+
 }
 
 void NavigateItem::addAnimation(int t)

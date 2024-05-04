@@ -375,10 +375,15 @@ void NavigateView::mousePressEvent(QMouseEvent *ev)
     {
         if( x->inRange(ev->pos()) )
         {
-            x->mouseClicked();
+
+            x->mouseClicked(ev);
             break;
         }
     }
+}
+
+void NavigateView::mouseReleaseEvent(QMouseEvent *)
+{
 
 }
 
@@ -506,7 +511,6 @@ void NavigateView::addItem(NavigateItem *parent, NavigateItem *item, int rank)
     {
         off = parent->_childs[rank-1]->_contentOffset + parent->_childs[rank-1]->_nodeContentHeight;
     }
-
 
     item->_contentOffset = off;
 

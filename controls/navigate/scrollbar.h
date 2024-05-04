@@ -12,6 +12,12 @@
 class ScrollBar : public QWidget
 {
     Q_OBJECT
+
+    enum TimerTag{
+        TimerAnimation,
+        TimerCnt,
+    };
+
 public:
     explicit ScrollBar(QWidget *parent = nullptr);
 
@@ -19,10 +25,10 @@ public:
     // the bar width as a percentage of overall control width
     float _barWPct;
     // scaling factor to control the scroll speed
-    int _scrollFactor;
+    float _scrollFactor;
 public:
     // the offset of the first control displayed in the view from the overall content height.
-    int _contentOffset;
+    float _contentOffset;
 
 private:
     int _barHeight;
@@ -36,7 +42,16 @@ private:
     int _viewHeight;
     // _contentHeight / this->height()
     float _scrollRatio;
-
+private:
+    // save the value in pixels to be scrolled
+    float _r;
+    float _r1;
+    float _dr;
+    int _timerCnt;
+private:
+    bool _scrollUp;
+private:
+    int _timerId[TimerCnt];
 public:
     void scroll(int step);
 
@@ -49,12 +64,13 @@ protected:
     void mouseReleaseEvent(QMouseEvent* ev) override {};
     void wheelEvent(QWheelEvent* ev) override;
     void resizeEvent(QResizeEvent* ev) override;
+    void timerEvent(QTimerEvent* ev) override;
 
 private:
     void drawVerticalScroll(QPainter& painter);
 
     void updateBar();
-    void scroll();
+    void requestScroll();
 signals:
     void scrolled(int contentOffset);
     void reachBottom();

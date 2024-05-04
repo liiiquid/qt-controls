@@ -50,6 +50,8 @@ protected:
     void resizeEvent(QResizeEvent* ev) override;
     bool event(QEvent* ev) override;
     void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+
 private:
     NavigateItem *internalSearch(int contentOffset, const QVector<NavigateItem*>& roots);
     NavigateItem *internalSearch(int contentOffset, const QVector<NavigateItem*>& roots, int len);

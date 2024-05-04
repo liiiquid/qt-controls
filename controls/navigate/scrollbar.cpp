@@ -1,10 +1,21 @@
 #include "scrollbar.h"
+#include <QtMath>
+
+const float OverScrollRatio = 1.0;
+const int AnimationDuration = 275;
+const int TimerInterval = 5;
 
 ScrollBar::ScrollBar(QWidget *parent)
     : QWidget{parent}
     , _contentOffset(0)
     , _bary(0)
 {
+    _r = 0;
+    _timerCnt = 0;
+    for(int i = 0; i < TimerCnt; i++)
+    {
+        _timerId[i] = 0;
+    }
 }
 
 
@@ -29,6 +40,28 @@ void ScrollBar::resizeEvent(QResizeEvent *ev)
     updateBar();
 }
 
+void ScrollBar::timerEvent(QTimerEvent *ev)
+{
+    if(ev->timerId() == _timerId[TimerAnimation])
+    {
+        _r -= _dr;
+        if( _r <= _r1)
+        {
+            _dr /= 1.5;
+            _r1 = _r + 1;
+        }
+        if( qRound(_r) == 0)
+        {
+            killTimer(_timerId[TimerAnimation]);
+            _timerId[TimerAnimation] = 0;
+        }
+        _contentOffset -= _dr;
+        _contentOffset = qMax(0.0, (double)_contentOffset);
+        _contentOffset = qMax(0.0, qMin(_contentHeight * 1.0 - (_viewHeight * 1.0 / OverScrollRatio), (double)_contentOffset));
+        requestScroll();
+    }
+}
+
 
 void ScrollBar::drawVerticalScroll(QPainter &painter)
 {
@@ -41,16 +74,51 @@ void ScrollBar::drawVerticalScroll(QPainter &painter)
 void ScrollBar::scroll(int step)
 {
     //qDebug() << "ScrollBar::scroll called, viewHeight: " << _viewHeight << ", contentHeight: " << _contentHeight << ", height(): " << height();
+
+    if( qRound(_r) == 0)
+    {
+        if(_timerId[TimerAnimation] == 0)
+        {
+            _timerId[TimerAnimation] = startTimer(TimerInterval);
+            if(_timerId[TimerAnimation] == 0)
+            {
+                qDebug() << "ScrollBar::scroll start timer error";
+            }
+            _timerCnt = 0;
+        }
+    }
+
+    // before upwards, now downwards, direction change.
+    if(step < 0 && _scrollUp == true)
+    {
+        _r = 0;
+    }
+    // before downwards, now upwards, direction change.
+    else if(step > 0 && _scrollUp == false)
+    {
+        _r = 0;
+    }
+
+    _r += step;
+    _r1 = _r / 3;
+    _dr = _r / ( (AnimationDuration) * 1.0 / TimerInterval);
+}
+
+void ScrollBar::requestScroll()
+{
+    updateBar();
     if(_viewHeight >= _contentHeight )
     {
         hide();
-        emit scrolled(0);
-        return;
+    }else
+    {
+        show();
     }
-
-    _contentOffset -= step;
-    scroll();
-
+    emit scrolled(qRound(_contentOffset));
+    if(_contentOffset >= _contentHeight - _viewHeight)
+    {
+        emit reachBottom();
+    }
 }
 
 void ScrollBar::setHeight(int contentHeight, int viewHeight)
@@ -60,7 +128,8 @@ void ScrollBar::setHeight(int contentHeight, int viewHeight)
     _scrollRatio = height() * 1.0 / _contentHeight;
     _barHeight = _viewHeight * _scrollRatio;
 
-    scroll(0);
+    requestScroll();
+
 }
 
 void ScrollBar::updateBar()
@@ -75,15 +144,4 @@ void ScrollBar::updateBar()
     update();
 }
 
-void ScrollBar::scroll()
-{
-    _contentOffset = qMax(0, _contentOffset);
-    _contentOffset = qMin(_contentHeight - _viewHeight, _contentOffset);
-    if(_contentOffset == _contentHeight - _viewHeight)
-    {
-        emit reachBottom();
-    }
-    updateBar();
-    show();
-    emit scrolled(_contentOffset);
-}
+

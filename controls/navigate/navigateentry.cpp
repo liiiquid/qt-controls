@@ -78,7 +78,7 @@ void NavigateEntry::initView()
 void NavigateEntry::initScrollBar()
 {
     _scrollBar = new ScrollBar(this);
-    _scrollBar->_scrollFactor = 5;
+    _scrollBar->_scrollFactor = 1.05;
     _scrollBar->_barWPct = 0.5;
 }
 
@@ -107,7 +107,8 @@ void NavigateEntry::onHeightChanged(int contentHeight, int viewHeight)
 
 void NavigateEntry::wheelEvent(QWheelEvent *ev)
 {
-    _scrollBar->scroll( (ev->angleDelta().y() ) / _scrollBar->_scrollFactor);
+
+    _scrollBar->scroll( (ev->angleDelta().y() * 1.0 ) / _scrollBar->_scrollFactor);
 }
 
 void NavigateEntry::paintEvent(QPaintEvent *ev)

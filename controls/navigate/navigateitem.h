@@ -98,7 +98,7 @@ public:
 public:
     bool inRange(QPoint pos);
 public:
-    void mouseClicked();
+    void mouseClicked(QMouseEvent* ev);
 public:
     void addAnimation(int t);
     void expandAnimation(int t);
