@@ -79,11 +79,11 @@ void ScrollBar::timerEvent(QTimerEvent *ev)
             {
                 qDebug() << "the value above the _overPoint:" << _contentOffset - _overPoint;
                 _isReachBound = true;
-                scroll(qAbs( _contentOffset - _overPoint ));
+                scroll( _contentOffset - _overPoint );
 
             }else if(_contentOffset < 0)
             {
-                //qDebug() << "the value below the _overPoint  " << 0 - _contentOffset;
+                qDebug() << "the value below the 0  " << 0 - _contentOffset;
                 _isReachBound = true;
                 scroll( _contentOffset );
             }
@@ -100,9 +100,9 @@ void ScrollBar::timerEvent(QTimerEvent *ev)
 void ScrollBar::scroll(int step)
 {
     //if( (step < 0 && _contentOffset == _overPoint) || (step > 0 && _contentOffset == 0) ) return;
-    float excess;
     if(step == 0)
     {
+        qDebug() << "zero zero zero";
         _scrollTag = Static;
         _r = 0;
         return;
@@ -135,14 +135,21 @@ void ScrollBar::scroll(int step)
         _scrollCnt = 0;
     }
     step = qAbs(step);
-    _r += qMin(120, step * _scrollCnt);
+
+    if(_isReachBound)
+    {
+        _t1 = 150;
+        _r = step;
+    }
+    else
+    {
+        float excess = _scrollCnt * 10;
+        _upperBound = _overPoint + excess;
+        _lowerBound = -excess;
+        _r += qMin(120, step + _scrollCnt * 50);
+        _t1 = qMin( 250., AnimationDuration * 1.0 / TimerInterval + _scrollCnt * 20);
+    }
     _r1 = _r;
-
-    excess = _scrollCnt * 10;
-    _upperBound = _overPoint + excess;
-    _lowerBound = -excess;
-    _t1 = qMin( 150., AnimationDuration * 1.0 / TimerInterval + _scrollCnt * 20);
-
     _timerCnt = 0;
     _scrollCnt += 1;
 
