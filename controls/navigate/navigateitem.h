@@ -70,6 +70,7 @@ public:
     bool _hover;
 public:
     static NavigateItem* _lastUpdatedItem;
+    static NavigateItem* _lastLastUpdatedItem;
 private:
     QMap<NavigateItem*, int> _childsIndex;
 private:

@@ -1,5 +1,5 @@
 #include "navigateentry.h"
-
+const int angleDelta = 60;
 NavigateEntry::NavigateEntry(QWidget *parent)
     : QWidget(parent)
 {
@@ -78,7 +78,7 @@ void NavigateEntry::initView()
 void NavigateEntry::initScrollBar()
 {
     _scrollBar = new ScrollBar(this);
-    _scrollBar->_scrollFactor = 1.05;
+    _scrollBar->_scrollDelta = angleDelta;
     _scrollBar->_barWPct = 0.5;
 }
 
@@ -107,8 +107,14 @@ void NavigateEntry::onHeightChanged(int contentHeight, int viewHeight)
 
 void NavigateEntry::wheelEvent(QWheelEvent *ev)
 {
-
-    _scrollBar->scroll( (ev->angleDelta().y() * 1.0 ) / _scrollBar->_scrollFactor);
+    if(_view->_initOk == false) return;
+    if(_scrollBar->_isReachBound) return;
+    // Upwards
+    if( ev->angleDelta().y() > 0)
+        _scrollBar->scroll( _scrollBar->_scrollDelta );
+    // Downwards
+    else
+        _scrollBar->scroll(-_scrollBar->_scrollDelta);
 }
 
 void NavigateEntry::paintEvent(QPaintEvent *ev)

@@ -8,6 +8,7 @@
 
 const int AnimationDuration = 250;
 const int PageLoadRatio = 0;
+
 NavigateView::NavigateView(QWidget *parent)
     : QWidget{parent}
 {
@@ -21,7 +22,7 @@ NavigateView::NavigateView(QWidget *parent)
     _root->_contentOffset = -_itemSize.height();
     _root->setFixedSize(QSize(0, 0));
     _root->_isExpand = true;
-    _preloadPageHeight = 0;
+    _preloadPageHeight = _yof = 0;
     setAttribute(Qt::WA_Hover);
 }
 
@@ -66,7 +67,8 @@ void NavigateView::updateView(NavigateItem* st_item, int d1)
     }
 
     int x = (width() - _itemSize.width()) >> 1;
-    int y = -d1;
+    int y = -d1 + _yof;
+    _yof = 0;
     int di = height() + d1;
 
     updateSubView(st_item, x, y, di);
@@ -109,6 +111,11 @@ void NavigateView::updateSubView(NavigateItem *item, int x, int &y, int& rh)
 
 void NavigateView::onScrolled(int contentOffset)
 {
+    if(contentOffset < 0)
+    {
+        _yof = -contentOffset;
+        contentOffset = 0;
+    }
     // contentOffset >= st_item->_contentOffset
     NavigateItem* st_item = search(contentOffset);
     int d1 = 0;
@@ -121,23 +128,28 @@ void NavigateView::onScrolled(int contentOffset)
         d1 = contentOffset - st_item->_contentOffset;
         //qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset;
         Q_ASSERT(d1 <= (int)st_item->_ch);
-        if( (NavigateItem::_lastUpdatedItem->_contentOffset - st_item->_contentOffset) <= _preloadPageHeight >> PageLoadRatio)
+        if(NavigateItem::_lastUpdatedItem != NavigateItem::_lastLastUpdatedItem)
         {
-            auto x = NavigateItem::_lastUpdatedItem->findAnimationAncestor_nearest_neg(NavigateItem::Normal);
-            if( x == nullptr )
+            if( (NavigateItem::_lastUpdatedItem->_contentOffset - st_item->_contentOffset) <= _preloadPageHeight >> PageLoadRatio)
             {
-                qDebug() << NavigateItem::_lastUpdatedItem->_title << "updating...";
-                updateContentOffset(NavigateItem::_lastUpdatedItem, NavigateItem::_lastUpdatedItem->_contentOffset, _preloadPageHeight);
-                qDebug() << "updated...";
+                auto x = NavigateItem::_lastUpdatedItem->findAnimationAncestor_nearest_neg(NavigateItem::Normal);
+                if( x == nullptr )
+                {
+                    //qDebug() << NavigateItem::_lastUpdatedItem->_title << "updating...";
+                    updateContentOffset(NavigateItem::_lastUpdatedItem, NavigateItem::_lastUpdatedItem->_contentOffset, _preloadPageHeight);
+                    //qDebug() << "updated...";
+                }
             }
+            NavigateItem::_lastLastUpdatedItem = NavigateItem::_lastUpdatedItem;
         }
+
     }
     updateView(st_item, d1);
 }
 
 int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 {
-    NavigateItem* t = item;
+    //NavigateItem* t = item;
     float d = 0;
     d = _root->_nodeContentHeight;
     Q_ASSERT(item != nullptr);
@@ -189,13 +201,14 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
     {
         emit heightChanged(_contentHeight, height());
     }
+#ifdef DEBUG
     qDebug() << "NavigateView::updateContentOffset:"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")<<":";
     if(NavigateItem::_lastUpdatedItem)
         qDebug() << "NavigateView::updateContentOffset: lastItem:" << NavigateItem::_lastUpdatedItem->_title <<NavigateItem::_lastUpdatedItem->_contentOffset << NavigateItem::_lastUpdatedItem->_nodeContentHeight;
 
     qDebug() << "NavigateView::updateContentOffset:" << "sender:" << t->_title << "current contentHeight:" << _root->_nodeContentHeight << "," << d << " height changed..";
     printInfor(_root);
-
+#endif
     return _contentHeight;
 }
 

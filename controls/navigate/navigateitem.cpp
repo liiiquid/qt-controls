@@ -5,6 +5,7 @@
 #include <QMouseEvent>
 const int TimerInverval = 5;
 NavigateItem* NavigateItem::_lastUpdatedItem = nullptr;
+NavigateItem* NavigateItem::_lastLastUpdatedItem = nullptr;
 NavigateItem::NavigateItem(QObject *parent)
     : QObject{parent}
 {
@@ -270,7 +271,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
                 nodeExpandHeightChanged_expcol(_cch - _h);
                 _isAllExpanded = true;
             }
-            qDebug() << _lastExpandItem->_title;
+            //qDebug() << _lastExpandItem->_title;
             qDebug() << _title << " expandAnimation end" << _cch - _h;
         }else
         {

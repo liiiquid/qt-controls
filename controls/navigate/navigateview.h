@@ -14,6 +14,7 @@ public:
     explicit NavigateView(QWidget *parent = nullptr);
 public:
     QSize _itemSize;
+    bool _initOk;
 public:
     QVector<NavigateItem*> _lastShow;
     NavigateItem* _root;
@@ -23,10 +24,11 @@ private:
 private:
     NavigateItem* _hoverItem;
 private:
-    bool _initOk;
     QMap<int, QVector<NavigateItem*>> _operations;
 private:
     int _preloadPageHeight;
+private:
+    int _yof;
 public:
     //int contentHeight();
 public:
