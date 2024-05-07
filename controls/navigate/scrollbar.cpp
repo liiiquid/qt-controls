@@ -1,19 +1,21 @@
 #include "scrollbar.h"
-#include <QtMath>
 
-const float OverScrollRatio = 0.25f;
+const float ExcessScrollRatio = 0.5f;
 const int AnimationDuration = 500;
+const int AnimationBounceDuration = 500;
 const int TimerInterval = 5;
-
+const int AnimationDurationMax = 250;
+const int AngleDeltaMax = 120;
+const int HideInterval = 1000;
 ScrollBar::ScrollBar(QWidget *parent)
     : QWidget{parent}
     , _contentOffset(0)
     , _bary(0)
 {
     _r = 0;
-    _timerCnt = 0;
     for(int i = 0; i < TimerCnt; i++)
     {
+        _timerCnt[i] = 0;
         _timerId[i] = 0;
     }
     _scrollTag = Static;
@@ -40,9 +42,10 @@ void ScrollBar::timerEvent(QTimerEvent *ev)
 {
     if(ev->timerId() == _timerId[TimerAnimation])
     {
-        _dr =  -2* _r1 / (_t1 * _t1) * _timerCnt + 2 * _r1 / _t1;
+        double d1 = 2 * _r1 / _t1;
+        _dr =  -d1 / _t1 * _timerCnt[TimerAnimation] + d1;
         _r -= _dr;
-        _timerCnt += 1;
+        _timerCnt[TimerAnimation] += 1;
         //qDebug() << _dr << _r;
 
         if(_scrollTag == Upwards)
@@ -91,7 +94,16 @@ void ScrollBar::timerEvent(QTimerEvent *ev)
         }
 
         requestScroll();
-    }else
+    }
+    else if(ev->timerId() == _timerId[TimerHide])
+    {
+        static int i =0;
+        qDebug() << "hide scroll" << i++;
+        killTimer(_timerId[TimerHide]);
+        _timerId[TimerHide] = 0;
+        hide();
+    }
+    else
     {
         qDebug() << "ScrollBar::timerEvent: unknown timer found";
     }
@@ -102,12 +114,20 @@ void ScrollBar::scroll(int step)
     //if( (step < 0 && _contentOffset == _overPoint) || (step > 0 && _contentOffset == 0) ) return;
     if(step == 0)
     {
-        qDebug() << "zero zero zero";
         _scrollTag = Static;
         _r = 0;
         return;
     }
-    if(isVisible() == false) return;
+    if(!canScroll())
+    {
+        qDebug() << "can not scroll";
+        return;
+    }
+    if(isVisible() == false)
+    {
+        show();
+    }
+
     //qDebug() << "ScrollBar::scroll called, viewHeight: " << _viewHeight << ", contentHeight: " << _contentHeight << ", height(): " << height();
 
     if(_timerId[TimerAnimation] == 0)
@@ -117,7 +137,7 @@ void ScrollBar::scroll(int step)
         {
             qDebug() << "ScrollBar::scroll start timer error";
         }
-        _timerCnt = 0;
+        _timerCnt[TimerAnimation] = 0;
     }
 
     // before upwards, now downwards, direction change.
@@ -138,27 +158,28 @@ void ScrollBar::scroll(int step)
 
     if(_isReachBound)
     {
-        _t1 = 150;
+        _t1 = AnimationBounceDuration / TimerInterval;
         _r = step;
     }
     else
     {
-        float excess = _scrollCnt * 10;
+        float excess = qMin(ExcessScrollRatio * _viewHeight*1.0, _scrollCnt * 10.0);
         _upperBound = _overPoint + excess;
         _lowerBound = -excess;
-        _r += qMin(120, step + _scrollCnt * 50);
-        _t1 = qMin( 250., AnimationDuration * 1.0 / TimerInterval + _scrollCnt * 20);
+        _r += qMin(AngleDeltaMax, step + _scrollCnt * 50);
+        _t1 = qMin( AnimationDurationMax * 1.0, AnimationDuration * 1.0 / TimerInterval + _scrollCnt * 20);
     }
     _r1 = _r;
-    _timerCnt = 0;
+    _timerCnt[TimerAnimation] = 0;
     _scrollCnt += 1;
 
 }
 
 void ScrollBar::requestScroll()
 {
+
     updateBar();
-    if(_viewHeight >= _contentHeight )
+    if( !canScroll() )
     {
         hide();
     }else
@@ -176,6 +197,7 @@ void ScrollBar::setHeight(int contentHeight, int viewHeight)
 {
     _contentHeight = contentHeight;
     _viewHeight = viewHeight;
+    setFixedHeight(_viewHeight);
     _scrollRatio = height() * 1.0 / _contentHeight;
     _barHeight = _viewHeight * _scrollRatio;
     _overPoint = _contentHeight* 1.0 - _viewHeight;
@@ -195,7 +217,20 @@ void ScrollBar::updateBar()
     //qDebug() << "_contentOffset: " << _contentOffset << ", max: " << _contentHeight - _viewHeight;
     update();
 }
+bool ScrollBar::canScroll()
+{
+    return _viewHeight < _contentHeight;
+}
 
+void ScrollBar::show()
+{
+    // if(_timerId[TimerHide] != 0)
+    // {
+    //     killTimer(_timerId[TimerHide]);
+    // }
+    // _timerId[TimerHide] = startTimer(HideInterval);
+    __super::show();
+}
 void ScrollBar::wheelEvent(QWheelEvent *ev)
 {
 }

@@ -82,7 +82,7 @@ private:
     void setAllItemSize(NavigateItem* root);
 signals:
     void heightChanged(int contentHeight, int viewHeight);
-
+    void widthChanged(int contentWidth, int viewWidth);
 public slots:
     void onScrolled(int contentOffset);
     void onReachBottom();

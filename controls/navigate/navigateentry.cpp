@@ -80,6 +80,7 @@ void NavigateEntry::initScrollBar()
     _scrollBar = new ScrollBar(this);
     _scrollBar->_scrollDelta = angleDelta;
     _scrollBar->_barWPct = 0.5;
+
 }
 
 void NavigateEntry::initLayout()
@@ -87,22 +88,29 @@ void NavigateEntry::initLayout()
     _hLayout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     _scrollBar->setFixedWidth(15);
     _hLayout->addWidget(_view);
-    _hLayout->addWidget(_scrollBar);
+    //_hLayout->addWidget(_scrollBar);
     _hLayout->setSpacing(0);
+    _scrollBar->move(_view->x() + _view->width() + 5, _view->y());
     connect(_scrollBar, &ScrollBar::scrolled, _view, &NavigateView::onScrolled);
     connect(_scrollBar, &ScrollBar::reachBottom, _view, &NavigateView::onReachBottom);
 
     connect(this, &NavigateEntry::collapsed, _view, &NavigateView::onCollapsed);
     connect(this, &NavigateEntry::expanded, _view, &NavigateView::onExpanded);
 
-    connect(_view, &NavigateView::heightChanged, this, &NavigateEntry::onHeightChanged);
-
+    connect(_view, &NavigateView::heightChanged, this, &NavigateEntry::onViewHeightChanged);
+    connect(_view, &NavigateView::widthChanged, this, &NavigateEntry::onViewWidthChanged);
 
 }
 
-void NavigateEntry::onHeightChanged(int contentHeight, int viewHeight)
+
+void NavigateEntry::onViewHeightChanged(int contentHeight, int viewHeight)
 {
     _scrollBar->setHeight(contentHeight, viewHeight);
+}
+
+void NavigateEntry::onViewWidthChanged(int contentWidth, int viewWidth)
+{
+    _scrollBar->move(_view->x() + viewWidth - _scrollBar->width() - 2, _view->y());
 }
 
 void NavigateEntry::wheelEvent(QWheelEvent *ev)

@@ -15,6 +15,7 @@ class ScrollBar : public QWidget
 
     enum TimerTag{
         TimerAnimation,
+        TimerHide,
         TimerCnt,
     };
 
@@ -60,10 +61,9 @@ private:
     float _r;
     float _r1;
     float _t1;
+private:
     // the first derivative of function _r
     float _dr;
-    // timer from 0 as independeent variable of function _r, unit is 1/TimerInterval
-    float _timerCnt;
 private:
     // in the period of one scroll operation, tally the frequency of scroll
     int _scrollCnt;
@@ -71,6 +71,8 @@ private:
     ScrollTag _scrollTag;
 private:
     int _timerId[TimerCnt];
+    // timer starts from 0 as independeent variable time, unit is 1/TimerInterval
+    float _timerCnt[TimerCnt];
 public:
     void scroll(int step);
 
@@ -87,9 +89,12 @@ protected:
 
 private:
     void drawVerticalScroll(QPainter& painter);
-
+private:
     void updateBar();
     void requestScroll();
+private:
+    bool canScroll();
+    void show();
 signals:
     void scrolled(int contentOffset);
     void reachBottom();

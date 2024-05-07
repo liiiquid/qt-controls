@@ -194,7 +194,6 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 
     NavigateItem::_lastUpdatedItem = item;
 
-
     d = _root->_nodeContentHeight - d;
     _contentHeight = qRound(_root->_nodeContentHeight);
     if( d != 0)
@@ -330,13 +329,6 @@ NavigateItem *NavigateView::internalSearch(int contentOffset, const QVector<Navi
     return roots[r];
 }
 
-void NavigateView::onResize()
-{
-    _itemSize.setWidth( width() - 6 );
-    emit heightChanged(_contentHeight, height());
-
-}
-
 bool NavigateView::event(QEvent *ev)
 {
     QHoverEvent* ev1;
@@ -454,7 +446,16 @@ void NavigateView::setItemHeight(int h)
 void NavigateView::resizeEvent(QResizeEvent *ev)
 {
     _preloadPageHeight = height() << PageLoadRatio;
-    onResize();
+    _itemSize.setWidth( width() - 6 );
+    if(ev->oldSize().height() != ev->size().height())
+    {
+        emit heightChanged(_contentHeight, height());
+    }
+    if(ev->oldSize().width() != ev->size().width())
+    {
+        emit widthChanged(0, width());
+    }
+
     if(_initOk == false)
     {
         _initOk = true;

@@ -44,7 +44,9 @@ private:
 private slots:
     void onExpanded(NavigateItem* item){emit expanded(item, _scrollBar->_contentOffset);}
     void onCollapsed(NavigateItem* item){emit collapsed(item, _scrollBar->_contentOffset);}
-    void onHeightChanged(int contentHeight, int viewHeight);
+private slots:
+    void onViewHeightChanged(int contentHeight, int viewHeight);
+    void onViewWidthChanged(int contentWidth, int viewWidth);
 signals:
     void expanded(NavigateItem*, int);
     void collapsed(NavigateItem*, int);
