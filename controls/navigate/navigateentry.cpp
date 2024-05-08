@@ -110,6 +110,7 @@ void NavigateEntry::onViewHeightChanged(int contentHeight, int viewHeight)
 
 void NavigateEntry::onViewWidthChanged(int contentWidth, int viewWidth)
 {
+    qDebug() << "NavigateEntry::onViewWidthChanged";
     _scrollBar->move(_view->x() + viewWidth - _scrollBar->width() - 2, _view->y());
 }
 

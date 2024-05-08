@@ -126,7 +126,7 @@ void NavigateView::onScrolled(int contentOffset)
     {
         Q_ASSERT(contentOffset >= st_item->_contentOffset);
         d1 = contentOffset - st_item->_contentOffset;
-        //qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset;
+        qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset << d1;
         Q_ASSERT(d1 <= (int)st_item->_ch);
         if(NavigateItem::_lastUpdatedItem != NavigateItem::_lastLastUpdatedItem)
         {
@@ -147,9 +147,12 @@ void NavigateView::onScrolled(int contentOffset)
     updateView(st_item, d1);
 }
 
+#define DEBUG
 int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 {
-    //NavigateItem* t = item;
+#ifdef DEBUG
+    NavigateItem* t = item;
+#endif
     float d = 0;
     d = _root->_nodeContentHeight;
     Q_ASSERT(item != nullptr);
@@ -455,7 +458,6 @@ void NavigateView::resizeEvent(QResizeEvent *ev)
     {
         emit widthChanged(0, width());
     }
-
     if(_initOk == false)
     {
         _initOk = true;
@@ -553,5 +555,5 @@ void NavigateView::removeItem(NavigateItem *parent, int i)
     // 1. collapse all the childs of the current node
     // 2. remove the current node from the array, mark it for deleteion.
     // 3. update content offset
-    parent->_childs[i]->removeAnimation(AnimationDuration);
+    parent->_childs[i]->remove(AnimationDuration);
 }

@@ -4,7 +4,7 @@ const float ExcessScrollRatio = 0.5f;
 const int AnimationDuration = 500;
 const int AnimationBounceDuration = 500;
 const int TimerInterval = 5;
-const int AnimationDurationMax = 250;
+const int AnimationDurationMax = 150;
 const int AngleDeltaMax = 120;
 const int HideInterval = 1000;
 ScrollBar::ScrollBar(QWidget *parent)
@@ -97,8 +97,6 @@ void ScrollBar::timerEvent(QTimerEvent *ev)
     }
     else if(ev->timerId() == _timerId[TimerHide])
     {
-        static int i =0;
-        qDebug() << "hide scroll" << i++;
         killTimer(_timerId[TimerHide]);
         _timerId[TimerHide] = 0;
         hide();
@@ -116,6 +114,9 @@ void ScrollBar::scroll(int step)
     {
         _scrollTag = Static;
         _r = 0;
+        _dr = 0;
+        _scrollCnt = 0;
+        _isReachBound = false;
         return;
     }
     if(!canScroll())
@@ -187,21 +188,32 @@ void ScrollBar::requestScroll()
         show();
     }
     emit scrolled(qRound(_contentOffset));
-    if(_contentOffset >= _contentHeight - _viewHeight)
-    {
-        emit reachBottom();
-    }
+    // if(_contentOffset >= _contentHeight - _viewHeight)
+    // {
+    //     emit reachBottom();
+    // }
 }
 
 void ScrollBar::setHeight(int contentHeight, int viewHeight)
 {
+    // static int i = 0;
+    // qDebug()<< "ScrollBar::setHeight:" << contentHeight << viewHeight << _contentOffset << _overPoint << i++;
     _contentHeight = contentHeight;
     _viewHeight = viewHeight;
     setFixedHeight(_viewHeight);
-    _scrollRatio = height() * 1.0 / _contentHeight;
-    _barHeight = _viewHeight * _scrollRatio;
-    _overPoint = _contentHeight* 1.0 - _viewHeight;
-
+    if( canScroll())
+    {
+        _scrollRatio = height() * 1.0 / _contentHeight;
+        _barHeight = _viewHeight * _scrollRatio;
+        _overPoint = _contentHeight* 1.0 - _viewHeight;
+        if(_contentOffset > _overPoint)
+        {
+            _contentOffset = _overPoint;
+        }
+    }else
+    {
+        _contentOffset = 0;
+    }
     requestScroll();
 
 }

@@ -25,7 +25,13 @@ public:
         Removing,
         Normal,
     }AnimatedState;
-
+    typedef enum{
+        Add,
+        Expand,
+        Collapse,
+        Remove,
+        Non,
+    }ActionState;
     int _timerId[5];
     int _timerCnt;
 public:
@@ -54,6 +60,7 @@ public:
     float _cch0;
     int _visibleLen;
 public:
+    // represents real time status of the item
     AnimatedState _state;
     QColor _bgcolor;
 public:
@@ -75,6 +82,11 @@ private:
     QMap<NavigateItem*, int> _childsIndex;
 private:
     bool _isAllExpanded;
+private:
+    int _animateTime;
+private:
+    // represents current action, which is the combination of several AnimatedState, and controls the running and switching of AnimatedState.
+    ActionState _action;
 public:
     void setExpand(bool isExpand);
     // update the contentOffset of every child nodes
@@ -104,7 +116,8 @@ public:
     void addAnimation(int t);
     void expandAnimation(int t);
     void collapseAnimation(int t);
-    void removeAnimation(int t);
+    void remove(int t);
+
     NavigateItem* findAnimationAncestor_nearest(AnimatedState state);
     NavigateItem* findAnimationAncestor_nearest_neg(AnimatedState state);
 public:
@@ -120,6 +133,8 @@ private:
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();
+private:
+    void removeAnimation(int t);
 signals:
     void collapsed(NavigateItem* );
     void expanded(NavigateItem* );
