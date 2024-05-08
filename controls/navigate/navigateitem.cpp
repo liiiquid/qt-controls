@@ -51,6 +51,8 @@ bool NavigateItem::inRange(QPoint pos)
 void NavigateItem::mouseClicked(QMouseEvent* ev)
 {
     qDebug() << _title << " clicked";
+    auto x = findAnimationAncestor_nearest_neg(Normal);
+    if( x != nullptr) return;
     if( ev->buttons() &Qt::LeftButton )
     {
         if(_state == Collapsing)
@@ -263,7 +265,7 @@ void NavigateItem::expandAnimation(int t)
         _lastExpandItem = _childs[0];
         _lastExpandItem->_contentOffset = _contentOffset + _ch;
         lastExpandItemChanged(_lastExpandItem);
-        _timerCnt = 0;
+        _timerCnt[Expanding] = 0;
         _cth = _nodeExpandHeight;
         _dh = (_cth - _cch);
         _dh = _dh / ( t * 1.0 / TimerInverval);
@@ -524,8 +526,13 @@ void NavigateItem::init()
     _state = Normal;
     _action = Non;
     _nodeContentHeight = _nodeExpandHeight = 0;
-    _timerCnt = 0;
     _isAllExpanded = false;
+
+    for(int i = 0; i < AnimationCnt; i++)
+    {
+        _timerCnt[i] = 0;
+        _timerId[i] = 0;
+    }
 }
 
 int NavigateItem::internalUpdateOffset(int off, float &rh, NavigateItem *root)
@@ -706,6 +713,11 @@ void NavigateItem::internalDeleteChild()
     {
         delete x;
     }
+}
+
+void NavigateItem::saveContext()
+{
+
 }
 
 NavigateItem *NavigateItem::findAnimationAncestor_nearest(AnimatedState state)

@@ -24,6 +24,7 @@ public:
         Collapsing,
         Removing,
         Normal,
+        AnimationCnt
     }AnimatedState;
     typedef enum{
         Add,
@@ -33,7 +34,7 @@ public:
         Non,
     }ActionState;
     int _timerId[5];
-    int _timerCnt;
+    int _timerCnt[5];
 public:
     NavigateItem* _parent;
     QVector<NavigateItem*> _childs;
@@ -133,6 +134,9 @@ private:
     void internalExpandParent(NavigateItem* item);
     void internalCollapseChild(NavigateItem* item);
     void internalDeleteChild();
+private:
+    void saveContext();
+    void recoverContext();
 private:
     void removeAnimation(int t);
 signals:

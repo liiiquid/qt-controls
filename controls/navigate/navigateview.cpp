@@ -147,7 +147,6 @@ void NavigateView::onScrolled(int contentOffset)
     updateView(st_item, d1);
 }
 
-#define DEBUG
 int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 {
 #ifdef DEBUG
