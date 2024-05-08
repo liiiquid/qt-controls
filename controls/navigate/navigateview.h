@@ -83,6 +83,8 @@ private:
 signals:
     void heightChanged(int contentHeight, int viewHeight);
     void widthChanged(int contentWidth, int viewWidth);
+signals:
+    void cursorOver(bool isEnter);
 public slots:
     void onScrolled(int contentOffset);
     void onReachBottom();

@@ -33,14 +33,10 @@ public:
         Remove,
         Non,
     }ActionState;
-    int _timerId[5];
-    int _timerCnt[5];
 public:
     NavigateItem* _parent;
     QVector<NavigateItem*> _childs;
     NavigateItem* _next;
-private:
-    NavigateItem* _lastExpandItem;
 public:
     int _contentOffset;
 public:
@@ -50,15 +46,9 @@ public:
     int _w;
     int _h;
     float _ch;
-    float _ch0;
     int _x;
     int _y;
 public:
-    float _dh;
-public:
-    int _cth;
-    float _cch;
-    float _cch0;
     int _visibleLen;
 public:
     // represents real time status of the item
@@ -82,12 +72,26 @@ public:
 private:
     QMap<NavigateItem*, int> _childsIndex;
 private:
+    NavigateItem* _lastExpandItem;
     bool _isAllExpanded;
 private:
-    int _animateTime;
+    int _cth;
+    float _cch;
+    float _cch0;
+    float _dh;
+    float _ch0;
+private:
+    float _t1;
+    float _r1;
+    float _dr;
 private:
     // represents current action, which is the combination of several AnimatedState, and controls the running and switching of AnimatedState.
     ActionState _action;
+    int _timerId[5];
+    int _timerCnt[5];
+
+private:
+    qint64 _tt;
 public:
     void setExpand(bool isExpand);
     // update the contentOffset of every child nodes

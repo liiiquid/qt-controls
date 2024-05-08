@@ -32,13 +32,12 @@ void NavigateItem::draw(QPainter &painter)
     painter.save();
     painter.translate(_x, _y);
 
-    painter.fillRect(0, 0, _w - 1, _h - 1, _bgcolor);
     auto r = QRect(0, 0, _w, _h);
     r.adjust(15,11,-1,-1);
     if( _hover )
         painter.fillRect(0, 0, _w - 1, _h - 1, QColor(255,255,255));
     painter.drawText(r, _title);
-    painter.drawRect(0, 0, _w -1, _h -1);
+    //painter.drawRect(0, 0, _w -1, _h -1);
     painter.restore();
 }
 
@@ -52,7 +51,7 @@ void NavigateItem::mouseClicked(QMouseEvent* ev)
 {
     qDebug() << _title << " clicked";
     auto x = findAnimationAncestor_nearest_neg(Normal);
-    if( x != nullptr) return;
+    if( x != this && x != nullptr) return;
     if( ev->buttons() &Qt::LeftButton )
     {
         if(_state == Collapsing)
@@ -76,12 +75,12 @@ void NavigateItem::remove(int t)
         qDebug() << "NavigateItem::removeChild: " << "the item can not be deleted at this time";
         return;
     }
-    _animateTime = t;
+    _t1 = t;
     _action = Remove;
     if(_isExpand)
-        collapseAnimation(_animateTime);
+        collapseAnimation(_t1);
     else
-        removeAnimation(_animateTime);
+        removeAnimation(_t1);
 }
 
 
@@ -161,10 +160,18 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             _state = Normal;
             _ch = _h;
             qDebug() << "addAnimation end" << _ch << _nodeExpandHeight << _nodeContentHeight;
-        }else
-        {
+        }
+        else {
+            double d1 = 2 * _dh / _t1;
+            _dr =  -d1 / _t1 * _timerCnt[Adding] + d1;
             _ch0 = _ch;
-            _ch += _dh;
+            _ch += _dr;
+            _timerCnt[Adding] += 1;
+            if(_ch >= _h)
+            {
+                _ch = _h;
+            }
+            //qDebug() << _dh << _ch << _dr << _timerCnt[Adding];
         }
     }else if(_state == Expanding)
     {
@@ -179,11 +186,19 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
                 _isAllExpanded = true;
             }
             //qDebug() << _lastExpandItem->_title;
-            qDebug() << _title << " expandAnimation end" << _cch - _h;
-        }else
-        {
+            qDebug() << _title << " expandAnimation end" << _cch - _h << QDateTime::currentMSecsSinceEpoch() - _tt;
+        }
+        else {
+            double d1 = 2 * _dh / _t1;
+            _dr =  -d1 / _t1 * _timerCnt[Expanding] + d1;
             _cch0 = _cch;
-            _cch += _dh;
+            _cch += _dr;
+            _timerCnt[Expanding] += 1;
+            if(_cch >= _cth)
+            {
+                _cch = _cth;
+            }
+
         }
 
     }else if(_state == Collapsing)
@@ -203,18 +218,25 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             qDebug() << _title << " collapseAnimation end";
             if(_action == Remove)
             {
-                removeAnimation(_animateTime);
+                removeAnimation(_t1 * TimerInverval);
             }
-        }else
-        {
+        }
+        else {
+            double d1 = 2 * _dh / _t1;
+            _dr =  -d1 / _t1 * _timerCnt[Expanding] + d1;
             _cch0 = _cch;
-            _cch -= _dh;
+            _cch -= _dr;
+            _timerCnt[Expanding] -= 1;
+            if(_cch <= _ch)
+            {
+                _cch = _ch;
+            }
 
         }
 
     }else if(_state == Removing)
     {
-        if( _ch <= 0)
+        if(_ch <= 0)
         {
             killTimer(_timerId[_state]);
             Q_ASSERT(_parent != nullptr);
@@ -222,11 +244,18 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             _parent->removeChild(this);
             qDebug() << "removeAnimation end";
             return;
-        }else
-        {
+        }
+        else {
+            double d1 = 2 * _dh / _t1;
+            _dr =  -d1 / _t1 * _timerCnt[Adding] + d1;
             _ch0 = _ch;
-            _ch -= _dh;
-            //qDebug() << _dh << _ch;
+            _ch -= _dr;
+            _timerCnt[Adding] -= 1;
+            if( _ch <= 0)
+            {
+                _ch = 0;
+            }
+            //qDebug() << _dh << _ch << _dr << _t1 << _timerCnt[Adding];
         }
     }
     emit updateTree(this);
@@ -239,7 +268,8 @@ void NavigateItem::addAnimation(int t)
     _state = Adding;
     _ch = 0;
     _dh = _h - _ch;
-    _dh = _dh / (t * 1.0 / TimerInverval);
+    _t1 = t / TimerInverval;
+    _timerCnt[Adding] = 0;
     int ret = startTimer(TimerInverval);
     if(ret == 0)
     {
@@ -249,7 +279,7 @@ void NavigateItem::addAnimation(int t)
     {
         _timerId[_state] = ret;
     }
-    qDebug() << "addAnimation start.. " << _dh;
+    qDebug() << "addAnimation start.. " << _dh << _t1;
 }
 
 void NavigateItem::expandAnimation(int t)
@@ -261,14 +291,16 @@ void NavigateItem::expandAnimation(int t)
     {
         if(_childs.size() <= 0) return;
         _cch0 = _cch = _ch;
-        //_nodeContentHeight = _cch;
+        _cth = _nodeExpandHeight;
+        _dh = _cth - _cch;
+        _t1 = t / TimerInverval;
+        _timerCnt[Expanding] = 0;
         _lastExpandItem = _childs[0];
         _lastExpandItem->_contentOffset = _contentOffset + _ch;
         lastExpandItemChanged(_lastExpandItem);
-        _timerCnt[Expanding] = 0;
-        _cth = _nodeExpandHeight;
-        _dh = (_cth - _cch);
-        _dh = _dh / ( t * 1.0 / TimerInverval);
+
+        // _dh = (_cth - _cch);
+        // _dh = _dh / ( t * 1.0 / TimerInverval);
     }else
     {
         qDebug() <<  "NavigateItem::expandAnimation: State other than Collapsing, Normal met";
@@ -287,7 +319,8 @@ void NavigateItem::expandAnimation(int t)
     {
         _timerId[_state] = ret;
     }
-    qDebug() << _title << " expandAnimation start" << _dh  << _cch << _cth;
+    _tt = QDateTime::currentMSecsSinceEpoch();
+    qDebug() << _title << " expandAnimation start" << _dh << _cch << _cth;
 }
 
 void NavigateItem::collapseAnimation(int t)
@@ -298,7 +331,8 @@ void NavigateItem::collapseAnimation(int t)
     }else if(_state == Normal)
     {
         _cch0 = _cch = _nodeExpandHeight;
-        _dh = (_cch - _ch) / ( t * 1.0 / TimerInverval);
+        _dh = _cch - _ch;
+        _t1 = t / TimerInverval;
     }else
     {
         qDebug() << "NavigateItem::collapseAnimation: State other than Expanding, Normal met";
@@ -324,8 +358,10 @@ void NavigateItem::removeAnimation(int t)
 {
     _state = Removing;
     _ch0 = _ch;
-    _dh = _ch / (t * 1.0 / TimerInverval);
+    _dh = _ch;
+    _t1 = t / TimerInverval;
     int ret = startTimer(TimerInverval);
+    _timerCnt[Adding] = _t1;
     if(ret == 0)
     {
         qDebug() << "NavigateItem::removeAnimation: startTimer error";

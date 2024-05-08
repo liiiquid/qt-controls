@@ -29,22 +29,18 @@ NavigateView::NavigateView(QWidget *parent)
 void NavigateView::paintEvent(QPaintEvent *ev)
 {
     QPainter painter(this);
-    NavigateItem* lastItem = nullptr;
-    int st_y = 0;
     QColor color = palette().color(QPalette::Window);
-    painter.fillRect(rect(), color);
 
     for(auto& x: _lastShow)
     {
         x->draw(painter);
     }
+
     if(_lastShow.size() > 0)
     {
-        lastItem = _lastShow.last();
-        st_y = lastItem->_y + lastItem->_ch;
+        int st_y = _lastShow.last()->_y + _lastShow.last()->_ch;
+        painter.fillRect(0, st_y, width(), height() - st_y, color);
     }
-
-    painter.fillRect(0, st_y, width(), height() - st_y, color);
 
     //painter.drawRect(0, 0, width() - 1, height() - 1 );
 
@@ -87,6 +83,10 @@ void NavigateView::updateView(NavigateItem* st_item, int d1)
             parent = parent->_next;
         }
     }
+    // NavigateItem* p = new NavigateItem("");
+    // p->setFixedSize(_itemSize);
+    // p->move(x, y);
+    // _lastShow.append(p);
     update();
 }
 
@@ -126,7 +126,7 @@ void NavigateView::onScrolled(int contentOffset)
     {
         Q_ASSERT(contentOffset >= st_item->_contentOffset);
         d1 = contentOffset - st_item->_contentOffset;
-        qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset << d1;
+        //qDebug() << st_item->_title << st_item->_ch << st_item->_contentOffset << contentOffset << d1;
         Q_ASSERT(d1 <= (int)st_item->_ch);
         if(NavigateItem::_lastUpdatedItem != NavigateItem::_lastLastUpdatedItem)
         {
@@ -135,9 +135,9 @@ void NavigateView::onScrolled(int contentOffset)
                 auto x = NavigateItem::_lastUpdatedItem->findAnimationAncestor_nearest_neg(NavigateItem::Normal);
                 if( x == nullptr )
                 {
-                    //qDebug() << NavigateItem::_lastUpdatedItem->_title << "updating...";
+                    qDebug() << NavigateItem::_lastUpdatedItem->_title << "updating...";
                     updateContentOffset(NavigateItem::_lastUpdatedItem, NavigateItem::_lastUpdatedItem->_contentOffset, _preloadPageHeight);
-                    //qDebug() << "updated...";
+                    qDebug() << "updated...";
                 }
             }
             NavigateItem::_lastLastUpdatedItem = NavigateItem::_lastUpdatedItem;
@@ -334,8 +334,10 @@ NavigateItem *NavigateView::internalSearch(int contentOffset, const QVector<Navi
 bool NavigateView::event(QEvent *ev)
 {
     QHoverEvent* ev1;
+
     if(ev->type() == QEvent::HoverMove)
     {
+
         ev1 = (QHoverEvent*)(ev);
         if(_hoverItem)
         {
@@ -372,6 +374,10 @@ bool NavigateView::event(QEvent *ev)
             update();
             _hoverItem = nullptr;
         }
+        emit cursorOver(false);
+    }else if(ev->type() == QEvent::HoverEnter)
+    {
+        emit cursorOver(true);
     }
     return __super::event(ev);
 }
@@ -409,8 +415,6 @@ void NavigateView::onUpdateTree(NavigateItem *item)
 
 void NavigateView::onExpanded(NavigateItem *item, int contentOffset)
 {
-
-    qDebug() << "NavigateView::onExpanded funciton called";
 
     Q_ASSERT(item->_parent != nullptr && item->_parent->_isExpand == true);
     item->expandAnimation(AnimationDuration);
