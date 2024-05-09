@@ -15,7 +15,7 @@ class NavigateItem : public QObject
 public:
     explicit NavigateItem(QObject *parent = nullptr);
     NavigateItem(const QString& title, QObject *parent = nullptr);
-
+    NavigateItem(const QString& title, const QString& iconPath, QObject *parent = nullptr);
     ~NavigateItem();
 public:
     typedef enum{
@@ -53,19 +53,24 @@ public:
 public:
     // represents real time status of the item
     AnimatedState _state;
+public:
     QColor _bgcolor;
+    QColor _hovercolor;
+    QColor _selcolor;
 public:
     bool _isVisible;
 public:
     QPixmap _icon;
-    QString _title;
 public:
+    QString _title;
     int     _tipCnt;
+    int _toIndex;
 public:
     bool _isExpand;
     bool _isDelete;
 public:
     bool _hover;
+    bool _selected;
 public:
     static NavigateItem* _lastUpdatedItem;
     static NavigateItem* _lastLastUpdatedItem;
@@ -80,6 +85,7 @@ private:
     float _cch0;
     float _dh;
     float _ch0;
+    float _rotateAngle;
 private:
     float _t1;
     float _r1;

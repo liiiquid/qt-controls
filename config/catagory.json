@@ -1,0 +1,46 @@
+[
+    {
+        "name":"首页",
+        "icon":":/icons//bank.png",
+        "toIndex":0
+    },
+    {
+        "name":"当前消息",
+        "icon": ":/icons/balloon.png",
+        "tipCnt":1398,
+        "toIndex":1
+    },
+    {
+        "name": "告警定时",
+        "icon": ":/icons/alarm_clock.png",
+        "tipCnt":78,
+        "toIndex":2
+    },
+    {
+        "name": "联网配置",
+        "icon": ":/icons/web.png",
+        "tipCnt":-1,
+        "toIndex":3
+
+    },
+    {
+        "name": "系统配置",
+        "icon": ":/icons/gear.png",
+        "tipCnt":-1,
+        "subItem":[
+        {
+            "name":"子系统配置1",
+            "icon": ":/icons/gears.png"
+        },
+        {
+            "name":"子系统配置2",
+            "icon": ":/icons/gears.png"
+        },
+        {
+            "name":"子系统配置3",
+            "icon": ":/icons/gears.png"
+        }
+        ]
+    }
+]
+

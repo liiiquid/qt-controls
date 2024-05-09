@@ -1,0 +1,36 @@
+"subItem":[
+		{
+			"name":"子系统配置1",
+			"icon": "qrc:/icons/gears.png"
+		},
+		{
+			"name":"子系统配置2",
+			"icon": "qrc:/icons/gears.png"
+		},
+		{
+			"name":"子系统配置3",
+			"icon": "qrc:/icons/gears.png"
+		}
+		]
+
+,
+	{
+		"name":"当前消息",
+		"icon": "qrc:/icons/balloon.png",
+        "tipCnt":1398
+	},
+	{
+		"name": "告警定时",
+		"icon": "qrc:/icons/alarm_clock.png",
+        "tipCnt":78
+	},
+	{
+		"name": "联网配置",
+		"icon": "qrc:/icons/web.png",
+        "tipCnt":-1
+	},
+	{
+        "name": "系统配置",
+		"icon": "qrc:/icons/gear.png",
+        "tipCnt":-1
+    }

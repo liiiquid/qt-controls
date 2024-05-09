@@ -13,30 +13,56 @@ NavigateItem::NavigateItem(QObject *parent)
     _title = "Title";
     init();
 }
+
 NavigateItem::NavigateItem(const QString &title, QObject *parent)
+{
+    _tipCnt = 0;
+    _title = title;
+    init();
+}
+NavigateItem::NavigateItem(const QString &title, const QString &iconPath, QObject *parent)
     : QObject{parent}
 {
     _tipCnt = 0;
     _title = title;
+    _icon.load(iconPath);
+    //Q_ASSERT( == true);
     init();
 
 }
 
 NavigateItem::~NavigateItem()
 {
-    internalDeleteChild();
+    // qt will delete them when program exits automatically, need to call internalDeleteChild to delete the node and its children explicitly.
+    //internalDeleteChild();
 }
 
 void NavigateItem::draw(QPainter &painter)
 {
     painter.save();
     painter.translate(_x, _y);
-
     auto r = QRect(0, 0, _w, _h);
-    r.adjust(15,11,-1,-1);
+    painter.fillRect(r, _bgcolor);
     if( _hover )
-        painter.fillRect(0, 0, _w - 1, _h - 1, QColor(255,255,255));
-    painter.drawText(r, _title);
+        painter.fillRect(r, _hovercolor);
+    if(_selected)
+        painter.fillRect(r, _selcolor);
+
+    // left icon region
+    int pw = _h * 0.6;
+    int ph = pw;
+    painter.drawPixmap( 5, (_h - ph) >> 1, pw, ph , _icon);
+
+    // middle text region
+    if(_selected)
+        painter.setPen(QColor("#054A99"));
+    else painter.setPen("#333");
+    painter.drawText(r.adjusted(_h, 0, 0, 0), Qt::AlignVCenter | Qt::AlignLeft, _title);
+
+    // right indicating region
+
+
+
     //painter.drawRect(0, 0, _w -1, _h -1);
     painter.restore();
 }
@@ -548,7 +574,7 @@ void NavigateItem::removeChild(NavigateItem *item)
 
 void NavigateItem::init()
 {
-    _hover = false;
+    _hover = _selected = false;
     _isDelete = false;
     _contentOffset = 0;
     _childs.clear();
@@ -557,12 +583,14 @@ void NavigateItem::init()
     _w = _h = _ch = 0;
     _x = _y = -1;
     _cth = _cch = 0;
+    _rotateAngle = 0;
     _visibleLen = 0;
     _dh = 0;
     _state = Normal;
     _action = Non;
     _nodeContentHeight = _nodeExpandHeight = 0;
     _isAllExpanded = false;
+    _tipCnt = _toIndex = INT_MIN;
 
     for(int i = 0; i < AnimationCnt; i++)
     {

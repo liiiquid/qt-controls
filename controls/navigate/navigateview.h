@@ -23,12 +23,18 @@ private:
     int _lastContentOffset;
 private:
     NavigateItem* _hoverItem;
+    NavigateItem* _selectItem;
+
 private:
     QMap<int, QVector<NavigateItem*>> _operations;
 private:
     int _preloadPageHeight;
 private:
     int _yof;
+private:
+    QColor _bgcolor;
+    QColor _hovercolor;
+    QColor _selcolor;
 public:
     //int contentHeight();
 public:

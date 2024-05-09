@@ -17,20 +17,22 @@ NavigateView::NavigateView(QWidget *parent)
     _initOk = false;
     _operations.clear();
     _lastShow.clear();
-    _hoverItem = nullptr;
+    _hoverItem = _selectItem = nullptr;
     _root = new NavigateItem("root",this);
     _root->_contentOffset = -_itemSize.height();
     _root->setFixedSize(QSize(0, 0));
     _root->_isExpand = true;
     _preloadPageHeight = _yof = 0;
+    _bgcolor.setNamedColor("#fff");
+    _hovercolor.setNamedColor("#E9F5FF");
+    _selcolor.setNamedColor("#C4E4FF");
     setAttribute(Qt::WA_Hover);
 }
 
 void NavigateView::paintEvent(QPaintEvent *ev)
 {
     QPainter painter(this);
-    QColor color = palette().color(QPalette::Window);
-
+    painter.fillRect(rect(), _bgcolor);
     for(auto& x: _lastShow)
     {
         x->draw(painter);
@@ -39,7 +41,7 @@ void NavigateView::paintEvent(QPaintEvent *ev)
     if(_lastShow.size() > 0)
     {
         int st_y = _lastShow.last()->_y + _lastShow.last()->_ch;
-        painter.fillRect(0, st_y, width(), height() - st_y, color);
+        painter.fillRect(0, st_y, width(), height() - st_y, _bgcolor);
     }
 
     //painter.drawRect(0, 0, width() - 1, height() - 1 );
@@ -83,10 +85,7 @@ void NavigateView::updateView(NavigateItem* st_item, int d1)
             parent = parent->_next;
         }
     }
-    // NavigateItem* p = new NavigateItem("");
-    // p->setFixedSize(_itemSize);
-    // p->move(x, y);
-    // _lastShow.append(p);
+
     update();
 }
 
@@ -106,8 +105,6 @@ void NavigateView::updateSubView(NavigateItem *item, int x, int &y, int& rh)
         updateSubView(item->_childs[i], x, y, rh);
     }
 }
-
-
 
 void NavigateView::onScrolled(int contentOffset)
 {
@@ -388,8 +385,14 @@ void NavigateView::mousePressEvent(QMouseEvent *ev)
     {
         if( x->inRange(ev->pos()) )
         {
-
+            if( _selectItem)
+            {
+                _selectItem->_selected = false;
+            }
+            _selectItem = x;
+            x->_selected = true;
             x->mouseClicked(ev);
+            update();
             break;
         }
     }
@@ -521,8 +524,9 @@ void NavigateView::addItem(NavigateItem *parent, NavigateItem *item, int rank)
     item->setParent(this);
     item->setFixedSize(_itemSize);
     item->_ch = 0;
-    item->_bgcolor = palette().color(QPalette::Window);
-
+    item->_bgcolor = _bgcolor;
+    item->_hovercolor = _hovercolor;
+    item->_selcolor = _selcolor;
     if( parent->_childs.size() == 0 || rank == 0)
     {
         off = parent->_contentOffset + _itemSize.height();

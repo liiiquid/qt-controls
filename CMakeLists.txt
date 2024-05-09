@@ -47,6 +47,8 @@ else()
             controls/navigate/scrollbar.h controls/navigate/scrollbar.cpp
             controls/navigate/navigateview.h controls/navigate/navigateview.cpp
             controls/navigate/viewitem.h controls/navigate/viewitem.cpp
+            icons.qrc
+            config.qrc
 
 
 

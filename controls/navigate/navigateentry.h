@@ -30,6 +30,8 @@ public:
     void removeItem(NavigateItem* parent, int i);
     void scroll(int step);
 public:
+    void initWithJson(const QByteArray& json);
+public:
     void setItemSize(QSize size);
     void setExpand(NavigateItem *item, bool isExpand);
 protected:
@@ -40,7 +42,8 @@ private:
     void initView();
     void initScrollBar();
     void initLayout();
-
+private:
+    NavigateItem* jsonToItem(const QJsonObject& obj);
 private slots:
     void onExpanded(NavigateItem* item){emit expanded(item, _scrollBar->_contentOffset);}
     void onCollapsed(NavigateItem* item){emit collapsed(item, _scrollBar->_contentOffset);}

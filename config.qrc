@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>config/catagory.json</file>
+    </qresource>
+</RCC>

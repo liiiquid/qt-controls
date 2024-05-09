@@ -1,4 +1,8 @@
 #include "navigateentry.h"
+#include "qjsonarray.h"
+
+#include <QJsonParseError>
+#include <QJsonObject>
 const int angleDelta = 60;
 NavigateEntry::NavigateEntry(QWidget *parent)
     : QWidget(parent)
@@ -59,6 +63,19 @@ void NavigateEntry::scroll(int step)
     _scrollBar->scroll(-step);
 }
 
+void NavigateEntry::initWithJson(const QByteArray &json)
+{
+    QJsonParseError error;
+    QJsonDocument jdc = QJsonDocument::fromJson(json, &error);
+    qDebug() << error.errorString();
+    auto array = jdc.array();
+    for( const auto& x : array)
+    {
+        addItem(jsonToItem(x.toObject()));
+    }
+
+}
+
 void NavigateEntry::setItemSize(QSize size)
 {
     _view->setItemHeight(size.height());
@@ -100,6 +117,35 @@ void NavigateEntry::initLayout()
     connect(_view, &NavigateView::heightChanged, this, &NavigateEntry::onViewHeightChanged);
     connect(_view, &NavigateView::widthChanged, this, &NavigateEntry::onViewWidthChanged);
 
+}
+
+NavigateItem *NavigateEntry::jsonToItem(const QJsonObject &obj)
+{
+    NavigateItem* p;
+    const QString& name = obj.value("name").toString();
+    const QString& icon = obj.value("icon").toString();
+    p = new NavigateItem(name, icon);
+    int tipCnt = INT_MIN;
+    if( obj.find("tipCnt") != obj.end() )
+    {
+        tipCnt = obj.value("tipCnt").toInt();
+    }
+    p->_tipCnt = tipCnt;
+    int toIndex = INT_MIN;
+    if( obj.find("tipCnt") != obj.end() )
+    {
+        toIndex = obj.value("tipCnt").toInt();
+    }
+    p->_toIndex = toIndex;
+    if(obj.find("subItem") != obj.end())
+    {
+        const QJsonArray& arr = obj.value("subItem").toArray();
+        for(const auto& x: arr)
+        {
+            addItem(p, jsonToItem(x.toObject()));
+        }
+    }
+    return p;
 }
 
 
