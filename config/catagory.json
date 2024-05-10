@@ -20,7 +20,21 @@
         "name": "联网配置",
         "icon": ":/icons/web.png",
         "tipCnt":-1,
-        "toIndex":3
+        "toIndex":3,
+        "subItem":[
+        {
+            "name":"子系统配置1",
+            "icon": ":/icons/gears.png"
+        },
+        {
+            "name":"子系统配置2",
+            "icon": ":/icons/gears.png"
+        },
+        {
+            "name":"子系统配置3",
+            "icon": ":/icons/gears.png"
+        }
+        ]
 
     },
     {

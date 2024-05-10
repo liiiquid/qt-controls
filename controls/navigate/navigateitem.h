@@ -54,9 +54,12 @@ public:
     // represents real time status of the item
     AnimatedState _state;
 public:
-    QColor _bgcolor;
-    QColor _hovercolor;
-    QColor _selcolor;
+    static QColor _bgcolor;
+    static QColor _hovercolor;
+    static QColor _selcolor;
+    static QColor _selcolor_font;
+    static QColor _fontcolor;
+    static QColor _tipcolor;
 public:
     bool _isVisible;
 public:
@@ -74,6 +77,9 @@ public:
 public:
     static NavigateItem* _lastUpdatedItem;
     static NavigateItem* _lastLastUpdatedItem;
+
+protected:
+    float _rotateAngle;
 private:
     QMap<NavigateItem*, int> _childsIndex;
 private:
@@ -85,7 +91,6 @@ private:
     float _cch0;
     float _dh;
     float _ch0;
-    float _rotateAngle;
 private:
     float _t1;
     float _r1;
@@ -93,9 +98,10 @@ private:
 private:
     // represents current action, which is the combination of several AnimatedState, and controls the running and switching of AnimatedState.
     ActionState _action;
-    int _timerId[5];
-    int _timerCnt[5];
-
+    int _timerId[AnimationCnt];
+    int _timerCnt[AnimationCnt];
+private:
+    int _timerId_rightArrow;
 private:
     qint64 _tt;
 public:
@@ -109,7 +115,7 @@ public:
     void removeChild(int);
     void removeChild(NavigateItem* item);
 public:
-    void draw(QPainter& painter);
+    virtual void draw(QPainter& painter) = 0;
 public:
     int width() {return _w;}
     int height() {return _h;}
@@ -122,7 +128,7 @@ public:
 public:
     bool inRange(QPoint pos);
 public:
-    void mouseClicked(QMouseEvent* ev);
+    virtual void mouseClicked(QMouseEvent* ev) = 0;
 public:
     void addAnimation(int t);
     void expandAnimation(int t);
@@ -153,6 +159,8 @@ signals:
     void collapsed(NavigateItem* );
     void expanded(NavigateItem* );
     void updateTree(NavigateItem*);
+signals:
+    void clicked(int toIndex);
 public:
     void nodeExpandHeightChanged(int dh);
     void lastExpandItemChanged(NavigateItem* lastExpandItem);
@@ -162,5 +170,37 @@ public:
     void nodeExpandHeightChanged_expcol(int dh);
 };
 
+// class NavigateItem_C
+class NavigateItem_C : public NavigateItem
+{
+    Q_OBJECT
+public:
+    explicit NavigateItem_C(QObject *parent = nullptr);
+    NavigateItem_C(const QString& title, QObject *parent = nullptr);
+    NavigateItem_C(const QString& title, const QString& iconPath, QObject *parent = nullptr);
 
+public:
+    void mouseClicked(QMouseEvent* ev) override;
+    void draw(QPainter& painter) override;
+
+private:
+    void init();
+private:
+    QPixmap _indicatorArrow;
+};
+
+// class NavigateItem_I
+class NavigateItem_I : public NavigateItem
+{
+    Q_OBJECT
+public:
+    explicit NavigateItem_I(QObject *parent = nullptr);
+    NavigateItem_I(const QString& title, QObject *parent = nullptr);
+    NavigateItem_I(const QString& title, const QString& iconPath, QObject *parent = nullptr);
+
+public:
+    void mouseClicked(QMouseEvent* ev) override;
+    void draw(QPainter& painter) override;
+
+};
 #endif // NAVIGATEITEM_H

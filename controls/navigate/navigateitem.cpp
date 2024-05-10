@@ -6,6 +6,14 @@
 const int TimerInverval = 5;
 NavigateItem* NavigateItem::_lastUpdatedItem = nullptr;
 NavigateItem* NavigateItem::_lastLastUpdatedItem = nullptr;
+
+QColor NavigateItem::_bgcolor = QColor("#fff");
+QColor NavigateItem::_hovercolor = QColor("#E9F5FF");
+QColor NavigateItem::_selcolor= QColor("#C4E4FF");
+QColor NavigateItem::_selcolor_font = QColor("#054A99");
+QColor NavigateItem::_fontcolor = QColor("#333");
+QColor NavigateItem::_tipcolor = QColor("#FF5E54");
+
 NavigateItem::NavigateItem(QObject *parent)
     : QObject{parent}
 {
@@ -37,61 +45,10 @@ NavigateItem::~NavigateItem()
     //internalDeleteChild();
 }
 
-void NavigateItem::draw(QPainter &painter)
-{
-    painter.save();
-    painter.translate(_x, _y);
-    auto r = QRect(0, 0, _w, _h);
-    painter.fillRect(r, _bgcolor);
-    if( _hover )
-        painter.fillRect(r, _hovercolor);
-    if(_selected)
-        painter.fillRect(r, _selcolor);
-
-    // left icon region
-    int pw = _h * 0.6;
-    int ph = pw;
-    painter.drawPixmap( 5, (_h - ph) >> 1, pw, ph , _icon);
-
-    // middle text region
-    if(_selected)
-        painter.setPen(QColor("#054A99"));
-    else painter.setPen("#333");
-    painter.drawText(r.adjusted(_h, 0, 0, 0), Qt::AlignVCenter | Qt::AlignLeft, _title);
-
-    // right indicating region
-
-
-
-    //painter.drawRect(0, 0, _w -1, _h -1);
-    painter.restore();
-}
-
 bool NavigateItem::inRange(QPoint pos)
 {
     if( _x < pos.x() && pos.x() < _x + _w && _y < pos.y() && pos.y() < _y + _ch ) return true;
     return false;
-}
-
-void NavigateItem::mouseClicked(QMouseEvent* ev)
-{
-    qDebug() << _title << " clicked";
-    auto x = findAnimationAncestor_nearest_neg(Normal);
-    if( x != this && x != nullptr) return;
-    if( ev->buttons() &Qt::LeftButton )
-    {
-        if(_state == Collapsing)
-        {
-            setExpand(true);
-        }else if(_state == Expanding)
-        {
-            setExpand(false);
-        }else
-        {
-            setExpand(!_isExpand);
-        }
-    }
-
 }
 
 void NavigateItem::remove(int t)
@@ -185,6 +142,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             killTimer(_timerId[_state]);
             _state = Normal;
             _ch = _h;
+
             qDebug() << "addAnimation end" << _ch << _nodeExpandHeight << _nodeContentHeight;
         }
         else {
@@ -201,7 +159,7 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
         }
     }else if(_state == Expanding)
     {
-        if(_cch >= _cth)
+        if(_cch >= _cth && _rotateAngle >= 90)
         {
             killTimer(_timerId[_state]);
             _state = Normal;
@@ -211,6 +169,9 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
                 nodeExpandHeightChanged_expcol(_cch - _h);
                 _isAllExpanded = true;
             }
+
+            _rotateAngle = 90;
+
             //qDebug() << _lastExpandItem->_title;
             qDebug() << _title << " expandAnimation end" << _cch - _h << QDateTime::currentMSecsSinceEpoch() - _tt;
         }
@@ -220,16 +181,22 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             _cch0 = _cch;
             _cch += _dr;
             _timerCnt[Expanding] += 1;
+
+            _rotateAngle += _r1 / _t1;
+
             if(_cch >= _cth)
             {
                 _cch = _cth;
             }
-
+            if(_rotateAngle >= 90)
+            {
+                _rotateAngle = 90;
+            }
         }
 
     }else if(_state == Collapsing)
     {
-        if(_cch <= _ch)
+        if(_cch <= _ch && _rotateAngle <= 0)
         {
             killTimer(_timerId[_state]);
             _timerId[_state] = 0;
@@ -241,7 +208,11 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
                 nodeExpandHeightChanged_expcol(_cch - _nodeExpandHeight);
                 _isAllExpanded = false;
             }
+
+            _rotateAngle = 0;
             qDebug() << _title << " collapseAnimation end";
+
+
             if(_action == Remove)
             {
                 removeAnimation(_t1 * TimerInverval);
@@ -252,12 +223,17 @@ void NavigateItem::timerEvent(QTimerEvent *ev)
             _dr =  -d1 / _t1 * _timerCnt[Expanding] + d1;
             _cch0 = _cch;
             _cch -= _dr;
+            _rotateAngle -= _r1 / _t1;
             _timerCnt[Expanding] -= 1;
             if(_cch <= _ch)
             {
                 _cch = _ch;
             }
 
+            if(_rotateAngle <= 0)
+            {
+                _rotateAngle = 0;
+            }
         }
 
     }else if(_state == Removing)
@@ -315,16 +291,22 @@ void NavigateItem::expandAnimation(int t)
         killTimer(_timerId[_state]);
     }else if(_state == Normal)
     {
-        if(_childs.size() <= 0) return;
         _cch0 = _cch = _ch;
         _cth = _nodeExpandHeight;
         _dh = _cth - _cch;
         _t1 = t / TimerInverval;
         _timerCnt[Expanding] = 0;
-        _lastExpandItem = _childs[0];
-        _lastExpandItem->_contentOffset = _contentOffset + _ch;
-        lastExpandItemChanged(_lastExpandItem);
+        if(_childs.size() <= 0)
+        {
+            _lastExpandItem = nullptr;
+        }else
+        {
+            _lastExpandItem = _childs[0];
+            _lastExpandItem->_contentOffset = _contentOffset + _ch;
+            lastExpandItemChanged(_lastExpandItem);
+        }
 
+        _r1 = 90;
         // _dh = (_cth - _cch);
         // _dh = _dh / ( t * 1.0 / TimerInverval);
     }else
@@ -359,6 +341,7 @@ void NavigateItem::collapseAnimation(int t)
         _cch0 = _cch = _nodeExpandHeight;
         _dh = _cch - _ch;
         _t1 = t / TimerInverval;
+        _r1 = 90;
     }else
     {
         qDebug() << "NavigateItem::collapseAnimation: State other than Expanding, Normal met";
@@ -401,7 +384,7 @@ void NavigateItem::removeAnimation(int t)
 
 void NavigateItem::setExpand(bool isExpand)
 {
-    if(_childs.size() <= 0) return;
+    //if(_childs.size() <= 0) return;
     if(isExpand)
     {
         _isExpand = isExpand;

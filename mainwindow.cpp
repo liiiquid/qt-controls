@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << dynamic_cast<QPushButton*>(sender())->text() << "clicked";
         int rank = edit->text().toInt();
         static int i = 0;
-        _navigator->addItem(new NavigateItem(QString("Title%1").arg(i++)), rank);
+        _navigator->addItem(new NavigateItem_C(QString("Title%1").arg(i++)), rank);
     });
 
     connect(btn1, &QPushButton::clicked, this, [&]()->void{
@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
         NavigateItem* p0 = _navigator->_view->_root->_childs[0];
         int rank = edit->text().toInt();
         static int i = 0;
-        _navigator->addItem(p0, new NavigateItem(QString("Title0-%1").arg(i++)), rank);
+        _navigator->addItem(p0, new NavigateItem_C(QString("Title0-%1").arg(i++)), rank);
     });
 
     connect(btn3, &QPushButton::clicked, this, [&]()->void{
@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
         static int i = 1;
         NavigateItem* p0 = _navigator->_view->_root->_childs[0]->_childs[0];
         int rank = edit->text().toInt();
-        _navigator->addItem(p0, new NavigateItem(QString("Title0-0-%1").arg(i++)), rank);
+        _navigator->addItem(p0, new NavigateItem_C(QString("Title0-0-%1").arg(i++)), rank);
 
     });
 

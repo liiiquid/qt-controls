@@ -32,9 +32,7 @@ private:
 private:
     int _yof;
 private:
-    QColor _bgcolor;
-    QColor _hovercolor;
-    QColor _selcolor;
+    static QColor _bgcolor;
 public:
     //int contentHeight();
 public:

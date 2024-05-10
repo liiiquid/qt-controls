@@ -8,7 +8,7 @@
 
 const int AnimationDuration = 250;
 const int PageLoadRatio = 0;
-
+QColor NavigateView::_bgcolor = QColor("#fff");
 NavigateView::NavigateView(QWidget *parent)
     : QWidget{parent}
 {
@@ -18,20 +18,20 @@ NavigateView::NavigateView(QWidget *parent)
     _operations.clear();
     _lastShow.clear();
     _hoverItem = _selectItem = nullptr;
-    _root = new NavigateItem("root",this);
+    _root = new NavigateItem_C("root",this);
     _root->_contentOffset = -_itemSize.height();
     _root->setFixedSize(QSize(0, 0));
     _root->_isExpand = true;
     _preloadPageHeight = _yof = 0;
-    _bgcolor.setNamedColor("#fff");
-    _hovercolor.setNamedColor("#E9F5FF");
-    _selcolor.setNamedColor("#C4E4FF");
+
+
     setAttribute(Qt::WA_Hover);
 }
 
 void NavigateView::paintEvent(QPaintEvent *ev)
 {
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
     painter.fillRect(rect(), _bgcolor);
     for(auto& x: _lastShow)
     {
@@ -127,6 +127,7 @@ void NavigateView::onScrolled(int contentOffset)
         Q_ASSERT(d1 <= (int)st_item->_ch);
         if(NavigateItem::_lastUpdatedItem != NavigateItem::_lastLastUpdatedItem)
         {
+            NavigateItem::_lastLastUpdatedItem = NavigateItem::_lastUpdatedItem;
             if( (NavigateItem::_lastUpdatedItem->_contentOffset - st_item->_contentOffset) <= _preloadPageHeight >> PageLoadRatio)
             {
                 auto x = NavigateItem::_lastUpdatedItem->findAnimationAncestor_nearest_neg(NavigateItem::Normal);
@@ -137,7 +138,7 @@ void NavigateView::onScrolled(int contentOffset)
                     qDebug() << "updated...";
                 }
             }
-            NavigateItem::_lastLastUpdatedItem = NavigateItem::_lastUpdatedItem;
+
         }
 
     }
@@ -195,10 +196,9 @@ int NavigateView::updateContentOffset(NavigateItem *item, int off, int rh)
 
     d = _root->_nodeContentHeight - d;
     _contentHeight = qRound(_root->_nodeContentHeight);
-    if( d != 0)
-    {
-        emit heightChanged(_contentHeight, height());
-    }
+    //qDebug() << d;
+    emit heightChanged(_contentHeight, height());
+
 #ifdef DEBUG
     qDebug() << "NavigateView::updateContentOffset:"<<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")<<":";
     if(NavigateItem::_lastUpdatedItem)
@@ -524,9 +524,6 @@ void NavigateView::addItem(NavigateItem *parent, NavigateItem *item, int rank)
     item->setParent(this);
     item->setFixedSize(_itemSize);
     item->_ch = 0;
-    item->_bgcolor = _bgcolor;
-    item->_hovercolor = _hovercolor;
-    item->_selcolor = _selcolor;
     if( parent->_childs.size() == 0 || rank == 0)
     {
         off = parent->_contentOffset + _itemSize.height();

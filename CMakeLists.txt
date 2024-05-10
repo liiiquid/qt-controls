@@ -49,6 +49,8 @@ else()
             controls/navigate/viewitem.h controls/navigate/viewitem.cpp
             icons.qrc
             config.qrc
+            controls/navigate/navigateitem_c.cpp
+            controls/navigate/navigateitem_i.cpp
 
 
 
